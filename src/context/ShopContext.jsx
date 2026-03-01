@@ -11,8 +11,6 @@ export const ShopProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isBusinessModalOpen, setBusinessModalOpen] = useState(false);
-
-  // Toasters
   const [toasts, setToasts] = useState([]);
 
   useEffect(() => {
@@ -31,12 +29,10 @@ export const ShopProvider = ({ children }) => {
     }
   };
 
-  // Toast helpers
   const addToast = (message, title = '') => {
     const id = Date.now().toString() + Math.random().toString(36).slice(2, 9);
     const toast = { id, title, message };
     setToasts((prev) => [toast, ...prev]);
-    // auto remove after 3.2s
     setTimeout(() => removeToast(id), 3200);
     return id;
   };
@@ -46,125 +42,112 @@ export const ShopProvider = ({ children }) => {
   };
 
   const addToCart = (product, qty, observation = '') => {
-    const existing = cart.find(item => item.id === product.id);
-    const currentQty = existing ? existing.qty : 0;
+    let limitReached = false;
 
-    if (currentQty + qty > product.stock) {
+    setCart(prevCart => {
+      const existing = prevCart.find(item => item.id === product.id);
+      const currentQty = existing ? existing.qty : 0;
+
+      if (currentQty + qty > product.stock) {
+        limitReached = true;
+        return prevCart;
+      }
+
+      if (existing) {
+        return prevCart.map(item =>
+          item.id === product.id
+            ? {
+              ...item,
+              qty: item.qty + qty,
+              observation: observation ?
+                (item.observation ? `${item.observation} | ${observation}` : observation)
+                : item.observation
+            }
+            : item
+        );
+      } else {
+        return [...prevCart, { ...product, qty, observation: observation || '' }];
+      }
+    });
+
+    if (limitReached) {
       alert(`Solo quedan ${product.stock} unidades disponibles.`);
-      return;
-    }
-
-    if (existing) {
-      setCart(cart.map(item =>
-        item.id === product.id
-          ? {
-            ...item,
-            qty: item.qty + qty,
-            observation: observation ?
-              (item.observation ? `${item.observation} | ${observation}` : observation)
-              : item.observation
-          }
-          : item
-      ));
     } else {
-      setCart([...cart, { ...product, qty, observation: observation || '' }]);
+      addToast(`${product.name} agregado al carrito.`, 'Producto agregado');
     }
-
-    // Mostrar toast cuando se agrega
-    addToast(`${product.name} agregado al carrito.`, 'Producto agregado');
   };
 
   const removeFromCart = (id) => {
-    setCart(cart.filter(item => item.id !== id));
+    setCart(prevCart => prevCart.filter(item => item.id !== id));
   };
 
   const updateCartQty = (id, delta) => {
-    const item = cart.find(i => i.id === id);
-    if (!item) return;
-
+    let limitReached = false;
     const product = products.find(p => p.id === id);
-    const newQty = item.qty + delta;
 
-    if (newQty > product.stock) {
+    setCart(prevCart => {
+      const item = prevCart.find(i => i.id === id);
+      if (!item) return prevCart;
+
+      const newQty = item.qty + delta;
+
+      if (newQty > product.stock) {
+        limitReached = true;
+        return prevCart;
+      }
+
+      if (newQty <= 0) {
+        return prevCart.filter(i => i.id !== id);
+      } else {
+        return prevCart.map(i => i.id === id ? { ...i, qty: newQty } : i);
+      }
+    });
+
+    if (limitReached) {
       alert(`Solo quedan ${product.stock} unidades disponibles.`);
-      return;
-    }
-
-    if (newQty <= 0) {
-      removeFromCart(id);
-    } else {
-      setCart(cart.map(i => i.id === id ? { ...i, qty: newQty } : i));
     }
   };
 
   const clearCart = () => setCart([]);
 
-  /**
-   * processOrder:
-   * - Prepara los datos de la orden (sin persistir) para mostrar en el modal de confirmación.
-   * - Agrega `observation` a nivel de pedido concatenando SOLO el texto de las observaciones
-   *   provistas desde ProductModal (sin prefijar con el nombre del producto).
-   */
   const processOrder = async (customerData) => {
     const total = cart.reduce((acc, item) => acc + (item.price * item.qty), 0);
-
-    // Tomar únicamente el texto de observación de cada item (si existe) y concatenar
     const itemObservations = cart
       .map(i => i.observation && i.observation.trim() ? i.observation.trim() : null)
       .filter(Boolean);
 
     const aggregatedObservation = itemObservations.length > 0 ? itemObservations.join(' | ') : '';
 
-    const orderDetails = {
+    return {
       name: customerData.name,
       address: customerData.address,
       payment: customerData.payment,
       items: cart,
       total,
-      observation: aggregatedObservation // sólo el texto de las observaciones (sin nombres)
+      observation: aggregatedObservation
     };
-
-    return orderDetails;
   };
 
-  /**
-   * confirmOrder:
-   * - Llamar cuando el usuario CONFIRME el pedido (por ejemplo, al pulsar el botón de WhatsApp en SuccessModal).
-   * - Inserta orden en la tabla `orders` con la columna `observation` poblada con la concatenación
-   *   de las observaciones de productos (texto puro).
-   */
   const confirmOrder = async (orderDetails) => {
     try {
-      // Construir objeto para la tabla orders.
-      // Asegúrate de que la tabla `orders` tenga una columna `observation` (text/varchar).
       const dbOrder = {
         customer_name: orderDetails.name,
         customer_address: orderDetails.address,
         payment_method: orderDetails.payment,
         total_amount: orderDetails.total,
-        order_items: orderDetails.items, // mantiene los items (incluyendo item.observation) en JSONB
-        observation: orderDetails.observation || '', // columna directa en orders (texto puro)
+        order_items: orderDetails.items,
+        observation: orderDetails.observation || '',
         order_status: 'Pendiente'
       };
 
-      // Guardar en orders (observación estará en su propia columna)
       await saveOrderToDB(dbOrder);
-
-      // Llamar al endpoint que actualiza stock en backend (usa Service Role)
       await placeOrderAPI(orderDetails, products);
-
-      // Refrescar productos para reflejar stock actualizado
       await fetchProducts();
-
-      // Limpiar carrito solo después de confirmar y procesar la orden
       clearCart();
-
-      // Notificar éxito
       addToast('Pedido confirmado y enviado correctamente.', 'Pedido enviado');
 
       return true;
     } catch (err) {
-      console.error('Error confirmando orden:', err);
       addToast('Error al confirmar el pedido: ' + (err.message || err), 'Error');
       throw err;
     }
@@ -184,7 +167,6 @@ export const ShopProvider = ({ children }) => {
       confirmOrder,
       isBusinessModalOpen,
       setBusinessModalOpen,
-      // toasts
       toasts,
       addToast,
       removeToast

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Minus, Plus, ShoppingCart } from 'lucide-react';
 import Modal from './ui/Modal';
 import { useShop } from '../context/ShopContext';
@@ -8,30 +8,66 @@ const ProductModal = ({ product, isOpen, onClose }) => {
   const [qty, setQty] = useState(1);
   const [imgIndex, setImgIndex] = useState(0);
   const [observation, setObservation] = useState('');
-  const { addToCart } = useShop();
+  const [selectedExtras, setSelectedExtras] = useState({});
+  const { addToCart, products } = useShop();
 
   useEffect(() => {
     if (isOpen) {
       setQty(1);
       setImgIndex(0);
       setObservation('');
+      setSelectedExtras({});
     }
   }, [isOpen]);
 
-  if (!product) return null;
+  const extrasPool = useMemo(() => {
+    if (!products || !product) return [];
+    return products.filter(p => p.id !== product.id && p.category && /aderez|adicional/i.test(p.category));
+  }, [products, product]);
+
+  const aderezos = useMemo(() => extrasPool.filter(p => /aderez/i.test(p.category)), [extrasPool]);
+  const adicionales = useMemo(() => extrasPool.filter(p => /adicional/i.test(p.category)), [extrasPool]);
+
+  const toggleExtra = (id) => {
+    setSelectedExtras(prev => {
+      const copy = { ...prev };
+      if (copy[id]) {
+        delete copy[id];
+      } else {
+        copy[id] = 1;
+      }
+      return copy;
+    });
+  };
+
+  const changeExtraQty = (id, delta) => {
+    setSelectedExtras(prev => {
+      const current = prev[id] || 0;
+      const next = Math.max(1, current + delta);
+      return { ...prev, [id]: next };
+    });
+  };
 
   const handleAddToCart = () => {
-    // addToCart ahora acepta tercer parámetro observation
-    addToCart(product, qty, observation?.trim());
+    addToCart(product, qty, observation.trim());
+
+    Object.entries(selectedExtras).forEach(([id, extraQty]) => {
+      const extraProduct = products.find(p => String(p.id) === String(id));
+      if (extraProduct) {
+        addToCart(extraProduct, extraQty, '');
+      }
+    });
+
     onClose();
   };
 
-  const images = product.image && product.image.length > 0 ? product.image : ['/img/placeholder.png'];
+  if (!product) return null;
+
+  const images = Array.isArray(product.image) ? product.image : (product.image ? [product.image] : ['/img/placeholder.png']);
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Detalles">
+    <Modal isOpen={isOpen} onClose={onClose} title="Detalles del Producto">
       <div className="space-y-6">
-        {/* Carousel Simple */}
         <div className="relative aspect-video rounded-xl overflow-hidden bg-gray-100">
           <img
             src={images[imgIndex]}
@@ -54,47 +90,99 @@ const ProductModal = ({ product, isOpen, onClose }) => {
         <div>
           <h2 className="text-2xl font-bold text-gray-900">{product.name}</h2>
           <p className="text-2xl font-bold text-primary mt-1">${formatMoney(product.price)}</p>
-          <p className="text-gray-600 mt-3 leading-relaxed">{product.description}</p>
+          <p className="text-gray-600 mt-3">{product.description}</p>
         </div>
 
-        {/* Observaciones */}
         <div>
-          <label className="block text-sm font-semibold mb-1 text-gray-700">Observaciones (opcional)</label>
+          <label className="block text-sm font-semibold mb-1 text-gray-700">Observaciones</label>
           <textarea
             value={observation}
             onChange={(e) => setObservation(e.target.value)}
-            placeholder="Ej: Sin cebolla, extra picante..."
-            rows={3}
-            className="w-full p-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition resize-none"
+            placeholder="Ej: Sin cebolla..."
+            rows={2}
+            className="w-full p-3 rounded-xl border border-gray-300 outline-none resize-none"
           />
         </div>
 
+        {(aderezos.length > 0 || adicionales.length > 0) && (
+          <div className="space-y-4">
+            {aderezos.length > 0 && (
+              <div className="bg-gray-50 p-3 rounded-xl border">
+                <h4 className="font-semibold mb-3">Aderezos</h4>
+                <div className="space-y-2">
+                  {aderezos.map(e => (
+                    <div key={e.id} className="flex items-center justify-between p-2 bg-white rounded-lg border">
+                      <div className="flex items-center gap-3">
+                        <input
+                          type="checkbox"
+                          checked={!!selectedExtras[e.id]}
+                          onChange={() => toggleExtra(e.id)}
+                          className="w-5 h-5 accent-primary"
+                        />
+                        <div>
+                          <p className="font-medium text-sm">{e.name}</p>
+                          <p className="text-xs text-primary">${formatMoney(e.price)}</p>
+                        </div>
+                      </div>
+                      {selectedExtras[e.id] && (
+                        <div className="flex items-center gap-2">
+                          <button onClick={() => changeExtraQty(e.id, -1)} className="w-6 h-6 bg-gray-100 rounded">-</button>
+                          <span className="text-sm font-bold">{selectedExtras[e.id]}</span>
+                          <button onClick={() => changeExtraQty(e.id, 1)} className="w-6 h-6 bg-gray-100 rounded">+</button>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {adicionales.length > 0 && (
+              <div className="bg-gray-50 p-3 rounded-xl border">
+                <h4 className="font-semibold mb-3">Adicionales</h4>
+                <div className="space-y-2">
+                  {adicionales.map(e => (
+                    <div key={e.id} className="flex items-center justify-between p-2 bg-white rounded-lg border">
+                      <div className="flex items-center gap-3">
+                        <input
+                          type="checkbox"
+                          checked={!!selectedExtras[e.id]}
+                          onChange={() => toggleExtra(e.id)}
+                          className="w-5 h-5 accent-primary"
+                        />
+                        <div>
+                          <p className="font-medium text-sm">{e.name}</p>
+                          <p className="text-xs text-primary">${formatMoney(e.price)}</p>
+                        </div>
+                      </div>
+                      {selectedExtras[e.id] && (
+                        <div className="flex items-center gap-2">
+                          <button onClick={() => changeExtraQty(e.id, -1)} className="w-6 h-6 bg-gray-100 rounded">-</button>
+                          <span className="text-sm font-bold">{selectedExtras[e.id]}</span>
+                          <button onClick={() => changeExtraQty(e.id, 1)} className="w-6 h-6 bg-gray-100 rounded">+</button>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
         <div className="flex items-center justify-between gap-4 pt-4 border-t">
           <div className="flex items-center bg-gray-100 rounded-lg p-1">
-            <button
-              onClick={() => setQty(Math.max(1, qty - 1))}
-              className="p-3 hover:bg-white rounded-md transition shadow-sm"
-              aria-label="Disminuir cantidad"
-            >
-              <Minus size={18} />
-            </button>
-            <span className="w-12 text-center font-bold text-lg">{qty}</span>
-            <button
-              onClick={() => setQty(qty + 1)}
-              className="p-3 hover:bg-white rounded-md transition shadow-sm"
-              aria-label="Aumentar cantidad"
-            >
-              <Plus size={18} />
-            </button>
+            <button onClick={() => setQty(Math.max(1, qty - 1))} className="p-3"><Minus size={18} /></button>
+            <span className="w-8 text-center font-bold">{qty}</span>
+            <button onClick={() => setQty(qty + 1)} className="p-3"><Plus size={18} /></button>
           </div>
-
           <button
             onClick={handleAddToCart}
             disabled={!product.stock || product.stock < qty}
-            className="flex-1 btn-primary flex items-center justify-center gap-2"
+            className="flex-1 bg-primary text-white py-3 rounded-lg font-bold flex items-center justify-center gap-2"
           >
             <ShoppingCart size={20} />
-            <span>{product.stock >= qty ? 'Agregar' : 'Sin Stock'}</span>
+            <span>{product.stock >= qty ? 'Agregar al carrito' : 'Sin Stock'}</span>
           </button>
         </div>
       </div>
