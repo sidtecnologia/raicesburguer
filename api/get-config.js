@@ -4,8 +4,8 @@ import path from 'path';
 
 export default (req, res) => {
   
-  const SB_URL = process.env.SB_URL;
-  const SB_ANON_KEY = process.env.SB_ANON_KEY;
+  const SB_URL = process.env.VITE_SB_URL;
+  const SB_ANON_KEY = process.env.VITE_SB_ANON_KEY;
 
   if (!SB_URL || !SB_ANON_KEY) {
     
