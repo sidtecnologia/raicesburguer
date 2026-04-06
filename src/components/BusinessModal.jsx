@@ -1,6 +1,7 @@
-import { MapPin, Phone, Clock, Globe } from 'lucide-react';
+import { MapPin, Phone, Clock } from 'lucide-react';
 import Modal from './ui/Modal';
 import { useShop } from '../context/ShopContext';
+import { BUSINESS_CONFIG } from '../config/businessConfig';
 
 const BusinessModal = () => {
   const { isBusinessModalOpen, setBusinessModalOpen } = useShop();
@@ -13,11 +14,11 @@ const BusinessModal = () => {
     >
       <div className="text-center space-y-6">
         <div className="w-24 h-24 mx-auto bg-gray-100 rounded-full overflow-hidden shadow-lg">
-           <img src="/img/favicon.png" alt="Logo Grande" className="w-full h-full object-cover" />
+           <img src="/img/favicon.png" alt="Logo" className="w-full h-full object-cover" />
         </div>
         
         <div>
-          <h2 className="text-2xl font-bold text-gray-800">Callejero's</h2>
+          <h2 className="text-2xl font-bold text-gray-800">{BUSINESS_CONFIG.name}</h2>
           <p className="text-gray-500">La mejor comida de El Socorro.</p>
         </div>
 
@@ -26,8 +27,8 @@ const BusinessModal = () => {
             <MapPin className="text-primary mt-1" size={20} />
             <div>
               <p className="font-semibold">Dirección</p>
-              <a href="https://maps.app.goo.gl/bSohh1rSfRBNmnPaA" target="_blank" rel="noreferrer" className="text-blue-600 hover:underline">
-                Cra. 12 #8 sur 128, Socorro, Santander
+              <a href={BUSINESS_CONFIG.mapsUrl} target="_blank" rel="noreferrer" className="text-blue-600 hover:underline text-sm">
+                {BUSINESS_CONFIG.address}
               </a>
             </div>
           </div>
@@ -36,7 +37,7 @@ const BusinessModal = () => {
             <Clock className="text-primary mt-1" size={20} />
             <div>
               <p className="font-semibold">Horario</p>
-              <p className="text-gray-600">Lun - Dom: 11:00 - 23:00</p>
+              <p className="text-gray-600 text-sm">{BUSINESS_CONFIG.schedule.label}</p>
             </div>
           </div>
 
@@ -44,16 +45,18 @@ const BusinessModal = () => {
             <Phone className="text-primary mt-1" size={20} />
             <div>
               <p className="font-semibold">Contacto</p>
-              <a href="tel:+3113366866" className="text-gray-600 hover:text-primary">+57 311 336 6866</a>
+              <a href={`tel:${BUSINESS_CONFIG.phoneRaw}`} className="text-gray-600 hover:text-primary text-sm">
+                {BUSINESS_CONFIG.phone}
+              </a>
             </div>
           </div>
         </div>
 
-        <button 
+        <button
           onClick={() => setBusinessModalOpen(false)}
-          className="w-full py-3 rounded-xl bg-gray-200 font-semibold hover:bg-gray-300 transition"
+          className="w-full py-3 bg-gray-800 text-white rounded-xl font-bold hover:bg-gray-900 transition-colors"
         >
-          Cerrar
+          Entendido
         </button>
       </div>
     </Modal>

@@ -10,6 +10,8 @@ import BusinessModal from './components/BusinessModal';
 import InstallPrompt from './components/InstallPrompt';
 import BannerCarousel from './components/BannerCarousel';
 import Toasts from './components/Toast';
+import StoreStatusBanner from './components/StoreStatusBanner';
+import { useStoreHours } from './hooks/useStoreHours';
 import { Loader2, Info } from 'lucide-react';
 
 const shuffleArray = (arr) => {
@@ -43,6 +45,7 @@ const Categories = ({ categories, selected, onSelect }) => (
 
 const StoreContent = () => {
   const { products, loading, error, setBusinessModalOpen } = useShop();
+  const isStoreOpen = useStoreHours();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('Todo');
   const [activeProduct, setActiveProduct] = useState(null);
@@ -122,6 +125,8 @@ const StoreContent = () => {
       <Navbar onSearch={setSearchTerm} onOpenCart={() => setIsCartOpen(true)} />
 
       <main className="max-w-6xl mx-auto px-3 py-4">
+        {!isStoreOpen && <StoreStatusBanner />}
+        
         <BannerCarousel images={banners} speed={48} />
 
         <Categories
@@ -141,7 +146,7 @@ const StoreContent = () => {
                   </h2>
                   <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
                     {featured.map(p => (
-                      <ProductCard key={p.id} product={p} onClick={setActiveProduct} />
+                      <ProductCard key={p.id} product={p} onClick={setActiveProduct} isStoreOpen={isStoreOpen} />
                     ))}
                   </div>
                 </section>
@@ -155,7 +160,7 @@ const StoreContent = () => {
                   </h2>
                   <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
                     {offers.map(p => (
-                      <ProductCard key={p.id} product={p} onClick={setActiveProduct} />
+                      <ProductCard key={p.id} product={p} onClick={setActiveProduct} isStoreOpen={isStoreOpen} />
                     ))}
                   </div>
                 </section>
@@ -169,7 +174,7 @@ const StoreContent = () => {
               ) : (
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
                   {filteredProducts.map(p => (
-                    <ProductCard key={p.id} product={p} onClick={setActiveProduct} />
+                    <ProductCard key={p.id} product={p} onClick={setActiveProduct} isStoreOpen={isStoreOpen} />
                   ))}
                 </div>
               )}
