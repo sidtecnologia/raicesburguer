@@ -1,5 +1,5 @@
 export const BUSINESS_CONFIG = {
-  name: "Callejero's",
+  name: "Comida Rápida",
   phone: "311 336 6866",
   phoneRaw: "3113366866",
   address: "Cra. 12 #8 sur 128, Socorro, Santander",

@@ -113,11 +113,12 @@ const StoreContent = () => {
   const showSections = searchTerm === '' && selectedCategory === 'Todo';
 
   const banners = [
-    'https://njyzsddgysrvatnkgcyl.supabase.co/storage/v1/object/public/images/baner/baner1.webp',
-    'https://njyzsddgysrvatnkgcyl.supabase.co/storage/v1/object/public/images/baner/baner2.webp',
-    'https://njyzsddgysrvatnkgcyl.supabase.co/storage/v1/object/public/images/baner/baner3.webp',
-    'https://njyzsddgysrvatnkgcyl.supabase.co/storage/v1/object/public/images/baner/baner4.webp',
-    'https://njyzsddgysrvatnkgcyl.supabase.co/storage/v1/object/public/images/baner/baner5.webp'
+    'https://ndqzyplsiqigsynweihk.supabase.co/storage/v1/object/public/donde_peter/baner/baner1.webp',
+    'https://ndqzyplsiqigsynweihk.supabase.co/storage/v1/object/public/donde_peter/baner/baner2.webp',
+    'https://ndqzyplsiqigsynweihk.supabase.co/storage/v1/object/public/donde_peter/baner/baner3.webp',
+    'https://ndqzyplsiqigsynweihk.supabase.co/storage/v1/object/public/donde_peter/baner/baner4.webp',
+    'https://ndqzyplsiqigsynweihk.supabase.co/storage/v1/object/public/donde_peter/baner/baner5.webp',
+    'https://ndqzyplsiqigsynweihk.supabase.co/storage/v1/object/public/donde_peter/baner/baner6.webp'
   ];
 
   return (
