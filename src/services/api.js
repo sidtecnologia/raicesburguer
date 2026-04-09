@@ -39,9 +39,8 @@ export const placeOrderAPI = async (orderDetails, products) => {
   const response = await fetch('/api/place-order', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ orderDetails, products })
+    body: JSON.stringify({ orderDetails, products }),
   });
-
   if (!response.ok) {
     const err = await response.json();
     throw new Error(err.error || 'Error procesando la orden');

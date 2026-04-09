@@ -1,225 +1,69 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState } from 'react';
 import { ShopProvider, useShop } from './context/ShopContext';
-import Navbar from './components/Navbar';
-import ProductCard from './components/ProductCard';
-import ProductModal from './components/ProductModal';
+import MenuFeed from './components/MenuFeed';
 import CartModal from './components/CartModal';
 import CheckoutModal from './components/CheckoutModal';
 import SuccessModal from './components/SuccessModal';
-import BusinessModal from './components/BusinessModal';
-import InstallPrompt from './components/InstallPrompt';
-import BannerCarousel from './components/BannerCarousel';
 import Toasts from './components/Toast';
-import StoreStatusBanner from './components/StoreStatusBanner';
-import { useStoreHours } from './hooks/useStoreHours';
-import { Loader2, Info } from 'lucide-react';
-
-const shuffleArray = (arr) => {
-  const copy = [...arr];
-  for (let i = copy.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [copy[i], copy[j]] = [copy[j], copy[i]];
-  }
-  return copy;
-};
-
-const Categories = ({ categories, selected, onSelect }) => (
-  <div className="flex gap-3 overflow-x-auto pb-4 pt-2 px-4 scrollbar-hide">
-    <button
-      onClick={() => onSelect('Todo')}
-      className={`flex-shrink-0 flex items-center gap-2 px-4 py-1.5 rounded-full border text-sm transition-all ${selected === 'Todo' ? 'bg-primary text-white border-primary shadow-md' : 'bg-white border-gray-200'}`}
-    >
-      <span className="font-semibold">Todo</span>
-    </button>
-    {categories.map(cat => (
-      <button
-        key={cat}
-        onClick={() => onSelect(cat)}
-        className={`flex-shrink-0 flex items-center gap-2 px-4 py-1.5 rounded-full border text-sm transition-all ${selected === cat ? 'bg-primary text-white border-primary shadow-md' : 'bg-white border-gray-200'}`}
-      >
-        <span className="font-semibold whitespace-nowrap">{cat}</span>
-      </button>
-    ))}
-  </div>
-);
+import InstallPrompt from './components/InstallPrompt';
+import { ShoppingBag, Loader2 } from 'lucide-react';
+import { BUSINESS_CONFIG } from './config/businessConfig';
 
 const StoreContent = () => {
-  const { products, loading, error, setBusinessModalOpen } = useShop();
-  const isStoreOpen = useStoreHours();
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('Todo');
-  const [activeProduct, setActiveProduct] = useState(null);
+  const { products, loading, addToCart, cart } = useShop();
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
   const [successOrder, setSuccessOrder] = useState(null);
 
-  useEffect(() => {
-    if (products.length > 0) {
-      const params = new URLSearchParams(window.location.search);
-      const productId = params.get('p');
-
-      if (productId) {
-        const targetProduct = products.find(p => String(p.id) === String(productId));
-        if (targetProduct) {
-          setActiveProduct(targetProduct);
-          window.history.replaceState({}, document.title, window.location.pathname);
-        }
-      }
-    }
-  }, [products]);
-
-  const categories = useMemo(() => {
-    const cats = [...new Set(products.map(p => p.category))];
-    return cats.filter(Boolean);
-  }, [products]);
-
-  const filteredProducts = useMemo(() => {
-    return products.filter(p => {
-      const searchLower = searchTerm.toLowerCase().trim();
-      const matchesSearch = !searchLower || 
-        p.name.toLowerCase().includes(searchLower) || 
-        (p.description && p.description.toLowerCase().includes(searchLower)) ||
-        (p.category && p.category.toLowerCase().includes(searchLower));
-      const matchesCategory = selectedCategory === 'Todo' || p.category === selectedCategory;
-      return matchesSearch && matchesCategory;
-    });
-  }, [products, searchTerm, selectedCategory]);
-
-  const featuredBase = useMemo(() => products.filter(p => p.featured), [products]);
-  const [featured, setFeatured] = useState(() => shuffleArray(featuredBase));
-
-  useEffect(() => {
-    setFeatured(shuffleArray(featuredBase));
-  }, [featuredBase]);
-
-  const handleSelectCategory = (cat) => {
-    setSelectedCategory(cat);
-    if (cat === 'Todo') {
-      setFeatured(shuffleArray(featuredBase));
-    }
-  };
-
-  const offers = useMemo(() => products.filter(p => p.isOffer), [products]);
+  const cartCount = cart.reduce((acc, item) => acc + item.qty, 0);
 
   if (loading) return (
-    <div className="h-screen flex flex-col items-center justify-center gap-4 text-primary">
-      <Loader2 className="animate-spin w-12 h-12" />
-      <p className="font-semibold animate-pulse">Cargando menú...</p>
+    <div className="h-dvh flex items-center justify-center bg-[#0a0806]">
+      <Loader2 className="animate-spin text-amber-400 w-10 h-10" />
     </div>
   );
 
-  if (error) return <div className="p-8 text-center text-red-500 font-bold">Error: {error}</div>;
-
-  const showSections = searchTerm === '' && selectedCategory === 'Todo';
-
-  const banners = [
-    'https://ndqzyplsiqigsynweihk.supabase.co/storage/v1/object/public/donde_peter/baner/baner1.webp',
-    'https://ndqzyplsiqigsynweihk.supabase.co/storage/v1/object/public/donde_peter/baner/baner2.webp',
-    'https://ndqzyplsiqigsynweihk.supabase.co/storage/v1/object/public/donde_peter/baner/baner3.webp',
-    'https://ndqzyplsiqigsynweihk.supabase.co/storage/v1/object/public/donde_peter/baner/baner4.webp',
-    'https://ndqzyplsiqigsynweihk.supabase.co/storage/v1/object/public/donde_peter/baner/baner5.webp',
-    'https://ndqzyplsiqigsynweihk.supabase.co/storage/v1/object/public/donde_peter/baner/baner6.webp'
-  ];
-
   return (
-    <div className="min-h-screen pb-20">
-      <Navbar onSearch={setSearchTerm} onOpenCart={() => setIsCartOpen(true)} />
-
-      <main className="max-w-6xl mx-auto px-3 py-4">
-        {!isStoreOpen && <StoreStatusBanner />}
-        
-        <BannerCarousel images={banners} speed={48} />
-
-        <Categories
-          categories={categories}
-          selected={selectedCategory}
-          onSelect={handleSelectCategory}
-        />
-
-        <div className="mt-4">
-          {showSections ? (
-            <>
-              {featured.length > 0 && (
-                <section className="mb-8">
-                  <h2 className="text-xl font-bold mb-4 text-gray-800 flex items-center gap-2">
-                    <span className="w-1.5 h-6 bg-primary rounded-full"></span>
-                    Destacados
-                  </h2>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-                    {featured.map(p => (
-                      <ProductCard key={p.id} product={p} onClick={setActiveProduct} isStoreOpen={isStoreOpen} />
-                    ))}
-                  </div>
-                </section>
-              )}
-
-              {offers.length > 0 && (
-                <section>
-                  <h2 className="text-xl font-bold mb-4 text-gray-800 flex items-center gap-2">
-                    <span className="w-1.5 h-6 bg-yellow-400 rounded-full"></span>
-                    Ofertas
-                  </h2>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-                    {offers.map(p => (
-                      <ProductCard key={p.id} product={p} onClick={setActiveProduct} isStoreOpen={isStoreOpen} />
-                    ))}
-                  </div>
-                </section>
-              )}
-            </>
-          ) : (
-            <section>
-              <h2 className="text-lg font-bold mb-4 text-gray-700">Resultados ({filteredProducts.length})</h2>
-              {filteredProducts.length === 0 ? (
-                <div className="text-center py-10 text-gray-500">No se encontraron productos.</div>
-              ) : (
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-                  {filteredProducts.map(p => (
-                    <ProductCard key={p.id} product={p} onClick={setActiveProduct} isStoreOpen={isStoreOpen} />
-                  ))}
-                </div>
-              )}
-            </section>
-          )}
+    <div className="fixed inset-0 overflow-hidden bg-[#0a0806]" style={{ fontFamily: "'Poppins', sans-serif" }}>
+      <header
+        className="absolute top-0 left-0 right-0 z-40 flex items-center justify-between px-6 pt-24 pb-6"
+        style={{ background: 'linear-gradient(to bottom, rgba(10,8,6,1) 0%, transparent 100%)' }}
+      >
+        <div className="flex flex-col">
+          <span className="display text-4xl leading-none text-amber-400 mt-4">
+            {BUSINESS_CONFIG.name}
+          </span>
+          <span className="text-[10px] text-white/40 uppercase tracking-[0.2em] font-bold mt-2">Menú Digital</span>
         </div>
-      </main>
 
-      <footer className="bg-white border-t mt-8 py-6 text-center text-gray-500 text-xs">
         <button
-          onClick={() => setBusinessModalOpen(true)}
-          className="inline-flex items-center gap-2 px-4 py-2 mb-3 text-gray-600 hover:text-gray-800 bg-gray-100 hover:bg-gray-300 rounded-lg transition-colors"
+          onClick={() => setIsCartOpen(true)}
+          className="relative flex items-center justify-center w-14 h-14 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-xl transition-all active:scale-90"
         >
-          <Info size={16} />
-          <span className="font-medium">Ver información del negocio</span>
+          <ShoppingBag size={24} className="text-white -translate-x-1" />
+          {cartCount > 0 && (
+            <span
+              className="absolute -top-1.5 -right-1.5 w-7 h-7 flex items-center justify-center rounded-full text-xs font-black shadow-2xl animate-pulse"
+              style={{ background: 'var(--accent)', color: 'var(--bg)' }}
+            >
+              {cartCount}
+            </span>
+          )}
         </button>
-        <p>&copy; {new Date().getFullYear()} TECSIN. Todos los derechos reservados.</p>
-      </footer>
+      </header>
 
-      <ProductModal
-        product={activeProduct}
-        isOpen={!!activeProduct}
-        onClose={() => setActiveProduct(null)}
-      />
+      <div className="absolute inset-0 z-10">
+        <MenuFeed
+          products={products}
+          onAdd={(p) => addToCart(p, 1, '')}
+          onOpenCart={() => setIsCartOpen(true)}
+        />
+      </div>
 
-      <CartModal
-        isOpen={isCartOpen}
-        onClose={() => setIsCartOpen(false)}
-        onCheckout={() => setIsCheckoutOpen(true)}
-      />
-
-      <CheckoutModal
-        isOpen={isCheckoutOpen}
-        onClose={() => setIsCheckoutOpen(false)}
-        onSuccess={(details) => setSuccessOrder(details)}
-      />
-
-      <SuccessModal
-        isOpen={!!successOrder}
-        onClose={() => setSuccessOrder(null)}
-        orderDetails={successOrder}
-      />
-
-      <BusinessModal />
+      <CartModal isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} onCheckout={() => setIsCheckoutOpen(true)} />
+      <CheckoutModal isOpen={isCheckoutOpen} onClose={() => setIsCheckoutOpen(false)} onSuccess={setSuccessOrder} />
+      <SuccessModal isOpen={!!successOrder} onClose={() => setSuccessOrder(null)} orderDetails={successOrder} />
+      
       <InstallPrompt />
       <Toasts />
     </div>

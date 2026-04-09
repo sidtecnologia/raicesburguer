@@ -3,6 +3,7 @@ import Modal from './ui/Modal';
 import { CheckCircle } from 'lucide-react';
 import { formatMoney } from '../utils/format';
 import { useShop } from '../context/ShopContext';
+import { BUSINESS_CONFIG } from '../config/businessConfig';
 
 const SuccessModal = ({ isOpen, onClose, orderDetails }) => {
   const { confirmOrder, addToast } = useShop();
@@ -15,7 +16,7 @@ const SuccessModal = ({ isOpen, onClose, orderDetails }) => {
   const buildMessage = () => {
     const lines = [];
     lines.push(`Hola, soy ${orderDetails.name}`);
-    lines.push(`he realizado un pedido para la dirección: ${orderDetails.address}`);
+    lines.push(`Pedido para: ${orderDetails.address}`);
     lines.push(`Pago: ${orderDetails.payment || 'Efectivo'}`);
     lines.push('');
     lines.push('Pedido:');
@@ -29,69 +30,62 @@ const SuccessModal = ({ isOpen, onClose, orderDetails }) => {
   };
 
   const buildLink = () => {
-    const whatsappNumber = '573227671829';
-    const text = buildMessage();
-    const encoded = encodeURIComponent(text);
-    if (isMobile()) {
-      return `whatsapp://send?phone=${whatsappNumber}&text=${encoded}`;
-    }
-    return `https://wa.me/${whatsappNumber}?text=${encoded}`;
+    const text = encodeURIComponent(buildMessage());
+    const num = BUSINESS_CONFIG.whatsappNumber;
+    return isMobile() ? `whatsapp://send?phone=${num}&text=${text}` : `https://wa.me/${num}?text=${text}`;
   };
 
   const handleWhatsApp = async () => {
-    const link = buildLink();
-    const win = window.open(link, '_blank', 'noopener,noreferrer');
+    window.open(buildLink(), '_blank', 'noopener,noreferrer');
     setLoading(true);
     try {
       await confirmOrder(orderDetails);
-      addToast('Pedido confirmado. Continúa en WhatsApp para finalizar el envío.', 'Pedido confirmado');
+      addToast('Pedido confirmado. Continúa en WhatsApp.', 'Pedido confirmado');
       if (onClose) onClose();
-      setTimeout(() => {
-        window.location.reload();
-      }, 800);
-    } catch (err) {
-      try {
-        if (win && !win.closed) win.close();
-      } catch (e) {}
-      addToast('No se pudo confirmar el pedido. Por favor intenta de nuevo.', 'Error');
-      alert('No se pudo procesar el pedido. Por favor intenta de nuevo más tarde.');
+      setTimeout(() => window.location.reload(), 800);
+    } catch {
+      addToast('No se pudo confirmar el pedido.', 'Error');
+      alert('Error procesando el pedido. Intenta de nuevo.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="¡Pedido Recibido!">
-      <div className="text-center space-y-6">
+    <Modal isOpen={isOpen} onClose={onClose} title="¡Pedido Listo!">
+      <div className="text-center space-y-5">
         <div className="flex justify-center">
-          <CheckCircle className="text-green-500 w-20 h-20 animate-bounce" />
-        </div>
-        <div>
-          <h3 className="text-xl font-bold text-gray-800">¡Tu comida está casi lista!</h3>
-          <p className="text-gray-500 mt-2">Confirma el pedido por WhatsApp para proceder con el despacho.</p>
+          <div className="w-20 h-20 rounded-full flex items-center justify-center" style={{ background: 'rgba(34,197,94,0.12)' }}>
+            <CheckCircle className="text-green-400 w-12 h-12" />
+          </div>
         </div>
 
-        <div className="bg-gray-100 p-4 rounded-xl text-left">
-          <p className="text-lg font-bold mb-2">Total a pagar: <span className="text-primary">${formatMoney(orderDetails.total)}</span></p>
-          {orderDetails.observation ? (
-            <div className="mt-2">
-              <p className="font-semibold text-sm text-gray-700">Observaciones del pedido:</p>
-              <p className="text-sm text-gray-600">{orderDetails.observation}</p>
-            </div>
-          ) : null}
+        <div>
+          <h3 className="display text-3xl mb-1" style={{ color: 'var(--text)' }}>¡Casi listo!</h3>
+          <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
+            Confirma tu pedido por WhatsApp para que empecemos a prepararlo.
+          </p>
+        </div>
+
+        <div className="p-4 rounded-2xl text-left" style={{ background: 'var(--surface2)', border: '1px solid var(--border)' }}>
+          <div className="flex justify-between items-center">
+            <span className="text-sm font-medium" style={{ color: 'var(--text-muted)' }}>Total a pagar</span>
+            <span className="display text-3xl" style={{ color: 'var(--accent)' }}>${formatMoney(orderDetails.total)}</span>
+          </div>
         </div>
 
         <button
           onClick={handleWhatsApp}
           disabled={loading}
-          className="w-full bg-green-500 hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-3 rounded-xl transition shadow-lg flex items-center justify-center gap-2"
+          className="w-full py-4 rounded-2xl font-bold text-white flex items-center justify-center gap-2 transition-all active:scale-95 disabled:opacity-50"
+          style={{ background: '#25D366', fontFamily: "'Bebas Neue', sans-serif", fontSize: '1.2rem', letterSpacing: '0.06em' }}
         >
-          <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" alt="WA" className="w-6 h-6" />
+          <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" alt="WA" className="w-5 h-5" />
           {loading ? 'Procesando...' : 'Confirmar por WhatsApp'}
         </button>
 
-        <button onClick={onClose} className="text-gray-400 text-sm hover:text-gray-600 underline">
-          Cancelar pedido y volver al menú
+        <button onClick={onClose} className="text-sm transition-colors" style={{ color: 'var(--text-muted)' }}>
+          Cancelar y volver al menú
         </button>
       </div>
     </Modal>

@@ -6,16 +6,12 @@ const Modal = ({ isOpen, onClose, title, children }) => {
 
   useEffect(() => {
     const handleOutsideClick = (e) => {
-      if (modalRef.current && !modalRef.current.contains(e.target)) {
-        onClose();
-      }
+      if (modalRef.current && !modalRef.current.contains(e.target)) onClose();
     };
-
     if (isOpen) {
       document.addEventListener('mousedown', handleOutsideClick);
       document.body.style.overflow = 'hidden';
     }
-
     return () => {
       document.removeEventListener('mousedown', handleOutsideClick);
       document.body.style.overflow = 'unset';
@@ -25,20 +21,34 @@ const Modal = ({ isOpen, onClose, title, children }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in">
-      <div 
+    <div
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4"
+      style={{ background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(6px)' }}
+    >
+      <div
         ref={modalRef}
-        className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto flex flex-col"
+        className="w-full sm:max-w-lg max-h-[92dvh] overflow-y-auto flex flex-col animate-pop-in"
+        style={{
+          background: 'var(--surface)',
+          border: '1px solid var(--border)',
+          borderRadius: '24px 24px 0 0',
+          boxShadow: '0 -20px 60px rgba(0,0,0,0.5)',
+        }}
       >
-        <div className="flex justify-between items-center p-4 border-b sticky top-0 bg-white z-10">
-          <h3 className="text-xl font-bold text-gray-800">{title}</h3>
-          <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-full transition">
-            <X size={24} />
+        <div
+          className="flex justify-between items-center px-5 py-4 sticky top-0 z-10"
+          style={{ background: 'var(--surface)', borderBottom: '1px solid var(--border)' }}
+        >
+          <h3 className="display text-2xl" style={{ color: 'var(--text)' }}>{title}</h3>
+          <button
+            onClick={onClose}
+            className="p-2 rounded-full transition-all"
+            style={{ background: 'var(--surface2)', color: 'var(--text-muted)' }}
+          >
+            <X size={20} />
           </button>
         </div>
-        <div className="p-6">
-          {children}
-        </div>
+        <div className="p-5">{children}</div>
       </div>
     </div>
   );
