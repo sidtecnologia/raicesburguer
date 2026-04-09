@@ -13,22 +13,9 @@ const InstallPrompt = () => {
       setVisible(true);
       setTimeout(() => setAnimating(true), 50);
     };
-
     window.addEventListener('beforeinstallprompt', handler);
-
-    return () => {
-      window.removeEventListener('beforeinstallprompt', handler);
-    };
+    return () => window.removeEventListener('beforeinstallprompt', handler);
   }, []);
-
-  useEffect(() => {
-    if (visible) {
-      const timer = setTimeout(() => {
-        close();
-      }, 8000);
-      return () => clearTimeout(timer);
-    }
-  }, [visible]);
 
   const close = () => {
     setAnimating(false);
@@ -39,9 +26,7 @@ const InstallPrompt = () => {
     if (!deferredPrompt) return;
     deferredPrompt.prompt();
     const { outcome } = await deferredPrompt.userChoice;
-    if (outcome === 'accepted') {
-      setDeferredPrompt(null);
-    }
+    if (outcome === 'accepted') setDeferredPrompt(null);
     close();
   };
 
@@ -53,24 +38,23 @@ const InstallPrompt = () => {
       style={{
         transform: `translateY(${animating ? '0' : '-10px'})`,
         opacity: animating ? 1 : 0,
-        transition: 'all 0.5s cubic-bezier(0.16, 1, 0.3, 1)',
-        fontFamily: "'Poppins', sans-serif"
+        transition: 'all 0.5s cubic-bezier(0.16, 1, 0.3, 1)'
       }}
     >
-      <div className="flex items-center gap-3 px-4 py-3 rounded-2xl bg-black/80 border border-white/10 backdrop-blur-md shadow-2xl">
-        <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 bg-amber-400/20">
-          <Download size={18} className="text-amber-400" />
+      <div className="flex items-center gap-3 px-4 py-4 rounded-2xl bg-black/90 border border-white/10 backdrop-blur-xl shadow-2xl">
+        <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 bg-amber-400/20">
+          <Download size={20} className="text-amber-400" />
         </div>
-        <div className="flex-1 min-w-0">
-          <p className="text-[12px] font-bold text-white leading-tight mb-2">Acceso rápido</p>
+        <div className="flex-1">
+          <p className="text-[13px] font-bold text-white leading-tight mb-2">Instala nuestra App</p>
           <button 
             onClick={handleInstall}
-            className="w-full py-1.5 px-3 rounded-lg bg-amber-400 text-black text-[10px] font-black uppercase tracking-wider active:scale-95 transition-transform"
+            className="w-full py-2 px-3 rounded-lg bg-amber-400 text-black text-[10px] font-black uppercase tracking-widest active:scale-95 transition-transform"
           >
-            Instalar App
+            Instalar Ahora
           </button>
         </div>
-        <button onClick={close} className="text-white/30 ml-1 p-1 self-start"><X size={14} /></button>
+        <button onClick={close} className="text-white/30 p-1 self-start"><X size={16} /></button>
       </div>
     </div>
   );

@@ -41,99 +41,57 @@ export const ShopProvider = ({ children }) => {
     setToasts((prev) => prev.filter(t => t.id !== id));
   };
 
-  const addToCart = (product, qty, observation = '') => {
-    let limitReached = false;
-
-    setCart(prevCart => {
-      const existing = prevCart.find(item => item.id === product.id);
-      const currentQty = existing ? existing.qty : 0;
-
-      if (currentQty + qty > product.stock) {
-        limitReached = true;
-        return prevCart;
-      }
-
+  const addToCart = (product, qty) => {
+    setCart(prev => {
+      const existing = prev.find(item => item.id === product.id);
       if (existing) {
-        return prevCart.map(item =>
-          item.id === product.id
-            ? {
-              ...item,
-              qty: item.qty + qty,
-              observation: observation ?
-                (item.observation ? `${item.observation} | ${observation}` : observation)
-                : item.observation
-            }
-            : item
+        return prev.map(item =>
+          item.id === product.id ? { ...item, qty: item.qty + qty } : item
         );
-      } else {
-        return [...prevCart, { ...product, qty, observation: observation || '' }];
       }
+      return [...prev, { ...product, qty }];
     });
-
-    if (limitReached) {
-      alert(`Solo quedan ${product.stock} unidades disponibles.`);
-    } else {
-      addToast(`${product.name} agregado al carrito.`, 'Producto agregado');
-    }
+    addToast(`${product.name} añadido al pedido`);
   };
 
   const removeFromCart = (id) => {
-    setCart(prevCart => prevCart.filter(item => item.id !== id));
+    setCart(prev => prev.filter(item => item.id !== id));
   };
 
   const updateCartQty = (id, delta) => {
-    let limitReached = false;
-    const product = products.find(p => p.id === id);
-
-    setCart(prevCart => {
-      const item = prevCart.find(i => i.id === id);
-      if (!item) return prevCart;
-
-      const newQty = item.qty + delta;
-
-      if (newQty > product.stock) {
-        limitReached = true;
-        return prevCart;
+    setCart(prev => prev.map(item => {
+      if (item.id === id) {
+        const newQty = Math.max(1, item.qty + delta);
+        return { ...item, qty: newQty };
       }
-
-      if (newQty <= 0) {
-        return prevCart.filter(i => i.id !== id);
-      } else {
-        return prevCart.map(i => i.id === id ? { ...i, qty: newQty } : i);
-      }
-    });
-
-    if (limitReached) {
-      alert(`Solo quedan ${product.stock} unidades disponibles.`);
-    }
+      return item;
+    }));
   };
 
   const clearCart = () => setCart([]);
 
-  const processOrder = async (customerData) => {
-    const total = cart.reduce((acc, item) => acc + (item.price * item.qty), 0);
-    const itemObservations = cart
-      .map(i => i.observation && i.observation.trim() ? i.observation.trim() : null)
-      .filter(Boolean);
-
-    const aggregatedObservation = itemObservations.length > 0 ? itemObservations.join(' | ') : '';
-
-    return {
-      name: customerData.name,
-      address: customerData.address,
-      phone: customerData.phone,
-      payment: customerData.payment,
-      items: cart,
-      total,
-      observation: aggregatedObservation
-    };
+  const processOrder = async (orderData) => {
+    try {
+      const total = cart.reduce((acc, item) => acc + item.price * item.qty, 0);
+      const orderToSave = {
+        ...orderData,
+        items: [...cart],
+        total,
+        status: 'Pendiente',
+        created_at: new Date().toISOString()
+      };
+      return orderToSave;
+    } catch (err) {
+      addToast(err.message, 'Error');
+      throw err;
+    }
   };
 
   const confirmOrder = async (orderDetails) => {
     try {
       const dbOrder = {
         customer_name: orderDetails.name,
-        customer_address: orderDetails.address,
+        address: orderDetails.address,
         phone: String(orderDetails.phone || ''),
         payment_method: orderDetails.payment,
         total_amount: orderDetails.total,
@@ -142,28 +100,22 @@ export const ShopProvider = ({ children }) => {
         order_status: 'Pendiente'
       };
 
-      // 1. Guardar en base de datos (Supabase)
       await saveOrderToDB(dbOrder);
 
-      // 2. Intentar notificación externa (opcional)
       try {
         if (typeof placeOrderAPI === 'function') {
           await placeOrderAPI(orderDetails, products);
         }
       } catch (apiErr) {
-        // Solo registramos el error de la API sin detener el flujo principal
-        console.warn("La notificación externa falló, pero el pedido se guardó:", apiErr);
+        console.warn("Notificación externa falló:", apiErr);
       }
 
-      // 3. Finalizar proceso exitoso
       await fetchProducts();
       clearCart();
-      addToast('Pedido confirmado y enviado correctamente.', 'Pedido enviado');
-
+      addToast('Pedido confirmado y enviado.', 'Pedido enviado');
       return true;
     } catch (err) {
-      console.error("Error crítico al procesar pedido:", err);
-      addToast('Error al confirmar el pedido: ' + (err.message || err), 'Error');
+      addToast('Error al confirmar: ' + err.message, 'Error');
       throw err;
     }
   };

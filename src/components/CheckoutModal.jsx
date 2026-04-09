@@ -59,7 +59,6 @@ const CheckoutModal = ({ isOpen, onClose, onSuccess, observation }) => {
             type="tel"
             onChange={e => field('phone', e.target.value)}
           />
-
           <div className="space-y-2">
             <p className="text-xs font-bold uppercase tracking-widest text-white/40 ml-1">Método de pago</p>
             <div className="grid grid-cols-2 gap-3">
@@ -91,7 +90,6 @@ const CheckoutModal = ({ isOpen, onClose, onSuccess, observation }) => {
               </button>
             </div>
           </div>
-
           <div className="flex items-start gap-3 py-2">
             <button
               type="button"
@@ -105,43 +103,14 @@ const CheckoutModal = ({ isOpen, onClose, onSuccess, observation }) => {
               {formData.terms && <span style={{ color: 'var(--bg)', fontSize: 12, fontWeight: 900 }}>✓</span>}
             </button>
             <span className="text-xs leading-relaxed text-white/60">
-              Acepto el <button 
-                type="button" 
-                onClick={() => setShowPrivacy(true)}
-                className="underline font-bold text-amber-400"
-              >
-                tratamiento de mis datos
-              </button> para procesar el pedido.
+              Acepto el <button type="button" onClick={() => setShowPrivacy(true)} className="underline font-bold text-amber-400">tratamiento de mis datos</button>
             </span>
           </div>
-
           <button type="submit" disabled={loading} className="w-full py-4 rounded-2xl bg-amber-400 text-black font-black uppercase tracking-widest active:scale-95 transition-transform">
             {loading ? 'Procesando...' : 'Confirmar Pedido'}
           </button>
         </form>
       </Modal>
-
-      {showPrivacy && (
-        <div className="fixed inset-0 z-[100] bg-[#0a0806] p-8 overflow-y-auto">
-          <div className="max-w-md mx-auto">
-            <button 
-              onClick={() => setShowPrivacy(false)}
-              className="flex items-center gap-2 mb-10 font-bold text-xs uppercase tracking-widest text-amber-400"
-            >
-              <ArrowLeft size={18} /> Regresar al Checkout
-            </button>
-            
-            <PrivacyContent />
-
-            <button 
-              onClick={() => setShowPrivacy(false)}
-              className="w-full mt-10 py-4 rounded-2xl font-bold uppercase tracking-widest text-sm bg-white/5 border border-white/10 text-white"
-            >
-              Cerrar
-            </button>
-          </div>
-        </div>
-      )}
     </>
   );
 };
