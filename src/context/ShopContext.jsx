@@ -91,10 +91,10 @@ export const ShopProvider = ({ children }) => {
     try {
       const dbOrder = {
         customer_name: orderDetails.name,
-        address: orderDetails.address,
+        customer_address: orderDetails.address,
         phone: String(orderDetails.phone || ''),
         payment_method: orderDetails.payment,
-        total_amount: orderDetails.total,
+        total_amount: Math.round(orderDetails.total),
         order_items: orderDetails.items,
         observation: orderDetails.observation || '',
         order_status: 'Pendiente'
@@ -107,15 +107,15 @@ export const ShopProvider = ({ children }) => {
           await placeOrderAPI(orderDetails, products);
         }
       } catch (apiErr) {
-        console.warn("Notificación externa falló:", apiErr);
+        console.warn(apiErr);
       }
 
       await fetchProducts();
       clearCart();
-      addToast('Pedido confirmado y enviado.', 'Pedido enviado');
+      addToast('Pedido confirmado y enviado.', 'Éxito');
       return true;
     } catch (err) {
-      addToast('Error al confirmar: ' + err.message, 'Error');
+      addToast(err.message, 'Error');
       throw err;
     }
   };
