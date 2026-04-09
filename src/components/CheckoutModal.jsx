@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import Modal from './ui/Modal';
 import { useShop } from '../context/ShopContext';
-import { PrivacyContent } from './privacy'; // Asegúrate de que el archivo anterior exista
-import { ArrowLeft } from 'lucide-react';
+import { PrivacyContent } from './privacy';
+import { ArrowLeft, Wallet, Banknote } from 'lucide-react';
 
 const CheckoutModal = ({ isOpen, onClose, onSuccess }) => {
   const { processOrder } = useShop();
@@ -56,8 +56,41 @@ const CheckoutModal = ({ isOpen, onClose, onSuccess }) => {
             className="w-full p-4 rounded-xl bg-white/5 border border-white/10 text-white outline-none"
             placeholder="Teléfono"
             required
+            type="tel"
             onChange={e => field('phone', e.target.value)}
           />
+
+          <div className="space-y-2">
+            <p className="text-xs font-bold uppercase tracking-widest text-white/40 ml-1">Método de pago</p>
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={() => field('payment', 'Efectivo')}
+                className="flex items-center justify-center gap-2 p-4 rounded-xl border transition-all"
+                style={{
+                  background: formData.payment === 'Efectivo' ? 'var(--accent)' : 'rgba(255,255,255,0.05)',
+                  borderColor: formData.payment === 'Efectivo' ? 'var(--accent)' : 'rgba(255,255,255,0.1)',
+                  color: formData.payment === 'Efectivo' ? 'var(--bg)' : 'white'
+                }}
+              >
+                <Banknote size={18} />
+                <span className="text-sm font-bold">Efectivo</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => field('payment', 'Transferencia')}
+                className="flex items-center justify-center gap-2 p-4 rounded-xl border transition-all"
+                style={{
+                  background: formData.payment === 'Transferencia' ? 'var(--accent)' : 'rgba(255,255,255,0.05)',
+                  borderColor: formData.payment === 'Transferencia' ? 'var(--accent)' : 'rgba(255,255,255,0.1)',
+                  color: formData.payment === 'Transferencia' ? 'var(--bg)' : 'white'
+                }}
+              >
+                <Wallet size={18} />
+                <span className="text-sm font-bold">Transferencia</span>
+              </button>
+            </div>
+          </div>
 
           <div className="flex items-start gap-3 py-2">
             <button
@@ -82,13 +115,12 @@ const CheckoutModal = ({ isOpen, onClose, onSuccess }) => {
             </span>
           </div>
 
-          <button type="submit" disabled={loading} className="w-full py-4 rounded-2xl bg-amber-400 text-black font-black uppercase tracking-widest">
+          <button type="submit" disabled={loading} className="w-full py-4 rounded-2xl bg-amber-400 text-black font-black uppercase tracking-widest active:scale-95 transition-transform">
             {loading ? 'Procesando...' : 'Confirmar Pedido'}
           </button>
         </form>
       </Modal>
 
-      {/* Modal de Privacidad (Pantalla Completa sobre el checkout) */}
       {showPrivacy && (
         <div className="fixed inset-0 z-[100] bg-[#0a0806] p-8 overflow-y-auto">
           <div className="max-w-md mx-auto">

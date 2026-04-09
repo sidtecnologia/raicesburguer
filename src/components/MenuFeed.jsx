@@ -118,7 +118,7 @@ const MenuFeed = ({ products, onAdd }) => {
             >
               Ver Bebidas
             </button>
-            <button onClick={() => setShowUpsell(false)} className="text-xs text-white/30 font-bold uppercase">Ahora no</button>
+            <button onClick={() => setShowUpsell(false)} className="text-xs text-white/30 font-bold uppercase">Más adelante</button>
           </div>
         </div>
       )}

@@ -15,17 +15,24 @@ const SuccessModal = ({ isOpen, onClose, orderDetails }) => {
 
   const buildMessage = () => {
     const lines = [];
-    lines.push(`Hola, soy ${orderDetails.name}`);
-    lines.push(`Pedido para: ${orderDetails.address}`);
-    lines.push(`Pago: ${orderDetails.payment || 'Efectivo'}`);
-    lines.push('');
-    lines.push('Pedido:');
+    lines.push(`*Nuevo Pedido - ${BUSINESS_CONFIG.name}*`);
+    lines.push(``);
+    lines.push(`*Cliente:* ${orderDetails.name}`);
+    lines.push(`*Dirección:* ${orderDetails.address}`);
+    lines.push(`*Método de Pago:* ${orderDetails.payment}`);
+    
+    if (orderDetails.observation) {
+      lines.push(`*Notas:* ${orderDetails.observation}`);
+    }
+
+    lines.push(``);
+    lines.push(`*Pedido:*`);
     orderDetails.items.forEach((item, idx) => {
-      const obs = item.observation ? ` (${item.observation})` : '';
-      lines.push(`${idx + 1}. ${item.qty} x ${item.name}${obs} - $${formatMoney(item.price * item.qty)}`);
+      lines.push(`${idx + 1}. ${item.qty}x ${item.name} - $${formatMoney(item.price * item.qty)}`);
     });
-    lines.push('');
-    lines.push(`Total: $${formatMoney(orderDetails.total)}`);
+    
+    lines.push(``);
+    lines.push(`*Total: $${formatMoney(orderDetails.total)}*`);
     return lines.join('\n');
   };
 
@@ -45,7 +52,6 @@ const SuccessModal = ({ isOpen, onClose, orderDetails }) => {
       setTimeout(() => window.location.reload(), 800);
     } catch {
       addToast('No se pudo confirmar el pedido.', 'Error');
-      alert('Error procesando el pedido. Intenta de nuevo.');
     } finally {
       setLoading(false);
     }
@@ -67,7 +73,11 @@ const SuccessModal = ({ isOpen, onClose, orderDetails }) => {
           </p>
         </div>
 
-        <div className="p-4 rounded-2xl text-left" style={{ background: 'var(--surface2)', border: '1px solid var(--border)' }}>
+        <div className="p-4 rounded-2xl text-left space-y-2" style={{ background: 'var(--surface2)', border: '1px solid var(--border)' }}>
+          <div className="flex justify-between items-center opacity-60">
+            <span className="text-xs font-bold uppercase tracking-widest">Pago</span>
+            <span className="text-xs font-bold">{orderDetails.payment}</span>
+          </div>
           <div className="flex justify-between items-center">
             <span className="text-sm font-medium" style={{ color: 'var(--text-muted)' }}>Total a pagar</span>
             <span className="display text-3xl" style={{ color: 'var(--accent)' }}>${formatMoney(orderDetails.total)}</span>
@@ -77,15 +87,15 @@ const SuccessModal = ({ isOpen, onClose, orderDetails }) => {
         <button
           onClick={handleWhatsApp}
           disabled={loading}
-          className="w-full py-4 rounded-2xl font-bold text-white flex items-center justify-center gap-2 transition-all active:scale-95 disabled:opacity-50"
-          style={{ background: '#25D366', fontFamily: "'Bebas Neue', sans-serif", fontSize: '1.2rem', letterSpacing: '0.06em' }}
+          className="w-full py-4 rounded-2xl font-bold text-white flex items-center justify-center gap-2 transition-all active:scale-95 disabled:opacity-50 shadow-xl shadow-green-500/10"
+          style={{ background: '#25D366', fontFamily: "'Poppins', sans-serif" }}
         >
           <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" alt="WA" className="w-5 h-5" />
-          {loading ? 'Procesando...' : 'Confirmar por WhatsApp'}
+          {loading ? 'Procesando...' : 'Enviar a WhatsApp'}
         </button>
 
-        <button onClick={onClose} className="text-sm transition-colors" style={{ color: 'var(--text-muted)' }}>
-          Cancelar y volver al menú
+        <button onClick={onClose} className="text-xs uppercase tracking-widest font-bold opacity-40 transition-opacity hover:opacity-100">
+          Cerrar
         </button>
       </div>
     </Modal>
