@@ -49,7 +49,7 @@ const InstallPrompt = () => {
 
   return (
     <div
-      className="fixed top-[150px] left-6 z-[200] w-auto max-w-[170px]"
+      className="fixed top-[95px] left-6 z-[200] w-full max-w-[250px]"
       style={{
         transform: `translateY(${animating ? '0' : '-10px'})`,
         opacity: animating ? 1 : 0,
@@ -57,20 +57,20 @@ const InstallPrompt = () => {
         fontFamily: "'Poppins', sans-serif"
       }}
     >
-      <div className="flex items-center gap-3 px-3 py-2 rounded-xl bg-black/80 border border-white/10 backdrop-blur-md shadow-2xl">
-        <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 bg-amber-400/20">
-          <Download size={14} className="text-amber-400" />
+      <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-black/80 border border-white/10 backdrop-blur-md shadow-2xl">
+        <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 bg-amber-400/20">
+          <Download size={18} className="text-amber-400" />
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-[10px] font-bold text-white leading-tight">¿Bajar App?</p>
+          <p className="text-[12px] font-bold text-white leading-tight mb-0.5">¿Instalar App?</p>
           <button 
             onClick={handleInstall}
-            className="text-[9px] text-amber-400 font-medium underline"
+            className="text-[10px] text-amber-400 font-medium underline"
           >
             Instalar ahora
           </button>
         </div>
-        <button onClick={close} className="text-white/30 ml-1"><X size={12} /></button>
+        <button onClick={close} className="text-white/30 ml-1 p-1"><X size={14} /></button>
       </div>
     </div>
   );

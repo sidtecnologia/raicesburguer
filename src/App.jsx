@@ -26,14 +26,14 @@ const StoreContent = () => {
   return (
     <div className="fixed inset-0 overflow-hidden bg-[#0a0806]" style={{ fontFamily: "'Poppins', sans-serif" }}>
       <header
-        className="absolute top-0 left-0 right-0 z-40 flex items-center justify-between px-6 pt-24 pb-6"
+        className="absolute top-0 left-0 right-0 z-40 flex items-center justify-between px-6 pt-8 pb-6"
         style={{ background: 'linear-gradient(to bottom, rgba(10,8,6,1) 0%, transparent 100%)' }}
       >
         <div className="flex flex-col">
-          <span className="display text-4xl leading-none text-amber-400 mt-4">
+          <span className="display text-4xl leading-none text-amber-400 mt-2">
             {BUSINESS_CONFIG.name}
           </span>
-          <span className="text-[10px] text-white/40 uppercase tracking-[0.2em] font-bold mt-2">Menú Digital</span>
+          <span className="text-[10px] text-white/40 uppercase tracking-[0.2em] font-bold mt-1">Menú Digital</span>
         </div>
 
         <button

@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback, useMemo, useEffect } from 'react';
 import FullScreenCard from './FullScreenCard';
-import { Droplets } from 'lucide-react';
+import { Droplets, ChevronsLeft, ChevronsRight } from 'lucide-react';
 
 const MenuFeed = ({ products, onAdd }) => {
   const groupedProducts = useMemo(() => {
@@ -23,8 +23,10 @@ const MenuFeed = ({ products, onAdd }) => {
   const [activeSection, setActiveSection] = useState('');
   const [currentIndex, setCurrentIndex] = useState(0);
   const [showUpsell, setShowUpsell] = useState(false);
+  const [hasSwiped, setHasSwiped] = useState(false);
+  
   const lastScroll = useRef(0);
-  const touchStartY = useRef(null);
+  const touchStartX = useRef(null);
 
   useEffect(() => {
     if (sections.length > 0 && !activeSection) {
@@ -43,20 +45,22 @@ const MenuFeed = ({ products, onAdd }) => {
   }, [currentProducts.length]);
 
   const handleTouchStart = (e) => {
-    touchStartY.current = e.touches[0].clientY;
+    touchStartX.current = e.touches[0].clientX;
   };
 
   const handleTouchEnd = (e) => {
-    if (!touchStartY.current) return;
-    const touchEndY = e.changedTouches[0].clientY;
-    const deltaY = touchStartY.current - touchEndY;
+    if (!touchStartX.current) return;
+    const touchEndX = e.changedTouches[0].clientX;
+    const deltaX = touchStartX.current - touchEndX;
     
-    if (deltaY > 50) {
+    if (deltaX > 50) {
       navigate(1);
-    } else if (deltaY < -50) {
+      if(!hasSwiped) setHasSwiped(true);
+    } else if (deltaX < -50) {
       navigate(-1);
+      if(!hasSwiped) setHasSwiped(true);
     }
-    touchStartY.current = null;
+    touchStartX.current = null;
   };
 
   const handleAdd = (p) => {
@@ -84,6 +88,16 @@ const MenuFeed = ({ products, onAdd }) => {
         sections={sections}
         activeSection={activeSection}
       />
+
+      {!hasSwiped && currentProducts.length > 1 && (
+        <div className="absolute top-1/2 left-0 right-0 -translate-y-1/2 flex justify-center items-center pointer-events-none z-30 opacity-80">
+          <div className="flex items-center gap-3 px-6 py-3 rounded-full bg-black/60 backdrop-blur-md border border-white/10 animate-pulse">
+            <ChevronsLeft className="text-amber-400" size={24} />
+            <span className="text-xs font-black uppercase tracking-[0.2em] text-white">Desliza</span>
+            <ChevronsRight className="text-amber-400" size={24} />
+          </div>
+        </div>
+      )}
 
       {showUpsell && (
         <div className="absolute inset-0 z-[150] bg-black/90 backdrop-blur-xl flex items-center justify-center p-10 text-center">
