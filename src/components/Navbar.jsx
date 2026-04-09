@@ -23,7 +23,7 @@ const Navbar = ({ onOpenCart }) => {
             onError={e => e.target.style.display = 'none'}
           />
         </div>
-        <span className="display text-2xl" style={{ color: 'var(--accent)' }}>Raíces Burguer</span>
+        <span className="display text-2xl" style={{ color: 'var(--accent)' }}>Raíces Burger</span>
       </div>
 
       <button

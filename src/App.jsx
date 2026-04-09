@@ -33,7 +33,7 @@ const StoreContent = () => {
           <span className="display text-4xl leading-none text-amber-400 mt-2">
             {BUSINESS_CONFIG.name}
           </span>
-          <span className="text-[10px] text-white/40 uppercase tracking-[0.2em] font-bold mt-1">Menú Digital</span>
+          <span className="text-[10px] text-white/40 uppercase tracking-[0.2em] font-bold mt-1">Cocina Oculta</span>
         </div>
 
         <button

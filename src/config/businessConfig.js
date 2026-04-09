@@ -1,14 +1,14 @@
 export const BUSINESS_CONFIG = {
-  name: "Raíces Burguer",
+  name: "Raíces Burger",
   phone: "3244652909",
   phoneRaw: "3244652909",
-  address: "Dirección secreta, tu ciudad",
+  address: "Dirección secreta, Cúcuta",
   mapsUrl: "https://maps.google.com/",
   whatsappNumber: "573244652909",
   schedule: {
-    label: "Mar - Dom: 12:00 pm - 10:00 pm",
-    openHour: 12,
-    closeHour: 22,
+    label: "Lun - Dom: 4:00 pm - 11:00 pm",
+    openHour: 16,
+    closeHour: 23,
     timezone: "America/Bogota"
   }
 };

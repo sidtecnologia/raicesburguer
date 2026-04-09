@@ -7,7 +7,7 @@ export const PrivacyContent = () => {
                 1. Responsable del Tratamiento
             </h2>
             <p className="mb-4">
-                El responsable del tratamiento de sus datos personales es <strong>La Cocina Oculta</strong>. Sus datos se usarán exclusivamente para procesar y entregar su pedido.
+                El responsable del tratamiento de sus datos personales es <strong>Raices Burger Cocina Oculta</strong>. Sus datos se usarán exclusivamente para procesar y entregar su pedido.
             </p>
 
             <h2 className="text-xl font-bold text-amber-400 border-b border-white/10 pb-2 mb-4">
