@@ -111,6 +111,10 @@ const CheckoutModal = ({ isOpen, onClose, onSuccess, observation }) => {
           </button>
         </form>
       </Modal>
+
+      <Modal isOpen={showPrivacy} onClose={() => setShowPrivacy(false)} title="Tratamiento de Datos">
+        <PrivacyContent />
+      </Modal>
     </>
   );
 };
