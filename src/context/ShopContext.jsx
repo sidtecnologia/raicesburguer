@@ -42,39 +42,53 @@ export const ShopProvider = ({ children }) => {
   };
 
   const addToCart = (product, qty) => {
+    const currentProduct = products.find(p => p.id === product.id);
+    const availableStock = currentProduct?.stock ?? 0;
+
     setCart(prev => {
       const existing = prev.find(item => item.id === product.id);
+      const newQty = existing ? existing.qty + qty : qty;
+
+      if (newQty > availableStock) {
+        addToast(`Solo quedan ${availableStock} unidades disponibles`, 'Sin Stock');
+        return prev;
+      }
+
       if (existing) {
-        return prev.map(item =>
-          item.id === product.id ? { ...item, qty: item.qty + qty } : item
-        );
+        return prev.map(item => item.id === product.id ? { ...item, qty: newQty } : item);
       }
       return [...prev, { ...product, qty }];
     });
-    addToast(`${product.name} añadido al pedido`);
-  };
-
-  const removeFromCart = (id) => {
-    setCart(prev => prev.filter(item => item.id !== id));
   };
 
   const updateCartQty = (id, delta) => {
+    const currentProduct = products.find(p => p.id === id);
+    const availableStock = currentProduct?.stock ?? 0;
+
     setCart(prev => prev.map(item => {
       if (item.id === id) {
         const newQty = Math.max(1, item.qty + delta);
+        if (newQty > availableStock) {
+          addToast('No hay más stock disponible', 'Inventario');
+          return item;
+        }
         return { ...item, qty: newQty };
       }
       return item;
     }));
   };
 
+  const removeFromCart = (id) => {
+    setCart(prev => prev.filter(item => item.id !== id));
+  };
+
   const clearCart = () => setCart([]);
 
-  const processOrder = async (orderData) => {
+  const processOrder = async (formData) => {
     try {
       const total = cart.reduce((acc, item) => acc + item.price * item.qty, 0);
       const orderToSave = {
-        ...orderData,
+        ...formData,
         items: [...cart],
         total,
         status: 'Pendiente',
@@ -134,9 +148,7 @@ export const ShopProvider = ({ children }) => {
       confirmOrder,
       isBusinessModalOpen,
       setBusinessModalOpen,
-      toasts,
-      addToast,
-      removeToast
+      toasts
     }}>
       {children}
     </ShopContext.Provider>
