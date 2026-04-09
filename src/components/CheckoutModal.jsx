@@ -4,7 +4,7 @@ import { useShop } from '../context/ShopContext';
 import { PrivacyContent } from './privacy';
 import { ArrowLeft, Wallet, Banknote } from 'lucide-react';
 
-const CheckoutModal = ({ isOpen, onClose, onSuccess }) => {
+const CheckoutModal = ({ isOpen, onClose, onSuccess, observation }) => {
   const { processOrder } = useShop();
   const [loading, setLoading] = useState(false);
   const [showPrivacy, setShowPrivacy] = useState(false);
@@ -24,7 +24,7 @@ const CheckoutModal = ({ isOpen, onClose, onSuccess }) => {
     }
     setLoading(true);
     try {
-      const details = await processOrder(formData);
+      const details = await processOrder({ ...formData, observation });
       onClose();
       onSuccess(details);
     } catch (error) {

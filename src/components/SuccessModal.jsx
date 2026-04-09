@@ -73,6 +73,13 @@ const SuccessModal = ({ isOpen, onClose, orderDetails }) => {
           </p>
         </div>
 
+        {orderDetails.observation && (
+          <div className="px-4 py-2 rounded-xl bg-amber-400/5 border border-amber-400/10 text-left">
+             <p className="text-[10px] font-black uppercase tracking-widest text-amber-400/60 mb-1">Tus notas:</p>
+             <p className="text-xs italic text-white/80">"{orderDetails.observation}"</p>
+          </div>
+        )}
+
         <div className="p-4 rounded-2xl text-left space-y-2" style={{ background: 'var(--surface2)', border: '1px solid var(--border)' }}>
           <div className="flex justify-between items-center opacity-60">
             <span className="text-xs font-bold uppercase tracking-widest">Pago</span>
