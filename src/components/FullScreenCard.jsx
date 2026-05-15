@@ -1,21 +1,45 @@
-import { useState, useEffect } from 'react';
-import { ShoppingBag, Check, XCircle } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { ShoppingBag, Check, XCircle, ChevronLeft, ChevronRight } from 'lucide-react';
 import { formatMoney } from '../utils/format';
 
-const FullScreenCard = ({ product, onAdd, onSectionChange, sections, activeSection }) => {
+const FullScreenCard = ({ product, onAdd, onSectionChange, sections, activeSection, index, total }) => {
   const [added, setAdded] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
-  const [imgKey, setImgKey] = useState(0);
+  const [showPrevCat, setShowPrevCat] = useState(false);
+  const [showNextCat, setShowNextCat] = useState(false);
+  const catScrollRef = useRef(null);
 
   const isOutOfStock = (product.stock ?? 0) <= 0;
   const DESC_LIMIT = 75;
   const isLong = product.description?.length > DESC_LIMIT;
 
   useEffect(() => {
-    setImgKey(prev => prev + 1);
     setIsExpanded(false);
     setAdded(false);
   }, [product.id]);
+
+  const checkCatScroll = () => {
+    const el = catScrollRef.current;
+    if (!el) return;
+    setShowPrevCat(el.scrollLeft > 4);
+    setShowNextCat(el.scrollLeft + el.clientWidth < el.scrollWidth - 4);
+  };
+
+  useEffect(() => {
+    checkCatScroll();
+    const el = catScrollRef.current;
+    if (!el) return;
+    el.addEventListener('scroll', checkCatScroll, { passive: true });
+    window.addEventListener('resize', checkCatScroll);
+    return () => {
+      el.removeEventListener('scroll', checkCatScroll);
+      window.removeEventListener('resize', checkCatScroll);
+    };
+  }, [sections]);
+
+  const scrollCat = (dir) => {
+    catScrollRef.current?.scrollBy({ left: dir * 120, behavior: 'smooth' });
+  };
 
   const handleAdd = () => {
     if (added || isOutOfStock) return;
@@ -25,16 +49,16 @@ const FullScreenCard = ({ product, onAdd, onSectionChange, sections, activeSecti
   };
 
   return (
-    <div className="relative w-full h-full overflow-hidden" style={{ fontFamily: "'Poppins', sans-serif" }}>
+    <div className="relative w-full h-full overflow-hidden">
       <div className="absolute inset-0 bg-[#0a0806]">
         <img
-          key={imgKey}
           src={Array.isArray(product.image) ? product.image[0] : (product.image || '/img/placeholder.png')}
           alt={product.name}
-          className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ${isOutOfStock ? 'opacity-30 grayscale' : 'opacity-90'}`}
-          style={{ animation: 'imageEntry 0.8s cubic-bezier(0.16, 1, 0.3, 1)' }}
+          className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-700 image-entry ${isOutOfStock ? 'opacity-30 grayscale' : ''}`}
+          loading="lazy"
+          decoding="async"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#0a0806] via-[#0a0806]/60 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#0a0806] via-[#0a0806]/30 to-transparent" />
       </div>
 
       <div className="absolute bottom-0 left-0 right-0 p-5 pb-6">
@@ -49,11 +73,16 @@ const FullScreenCard = ({ product, onAdd, onSectionChange, sections, activeSecti
                   Agotado
                 </span>
               )}
+              {total > 1 && (
+                <span className="ml-auto text-[9px] font-bold text-white/20 uppercase tracking-widest">
+                  {index + 1} / {total}
+                </span>
+              )}
             </div>
-            <h2 className="display text-3xl text-white leading-none uppercase tracking-tighter">{product.name}</h2>
+            <h2 className="display text-3xl md:text-4xl text-white leading-none uppercase tracking-tighter">{product.name}</h2>
           </div>
           <div className="text-right pl-4">
-            <p className="display text-2xl text-amber-400">${formatMoney(product.price)}</p>
+            <p className="display text-2xl md:text-3xl text-amber-400">${formatMoney(product.price)}</p>
           </div>
         </div>
 
@@ -62,9 +91,9 @@ const FullScreenCard = ({ product, onAdd, onSectionChange, sections, activeSecti
             {product.description}
           </p>
           {isLong && (
-            <button 
+            <button
               onClick={() => setIsExpanded(!isExpanded)}
-              className="text-[9px] font-bold uppercase tracking-widest text-amber-400 mt-1.5"
+              className="text-[9px] font-bold uppercase tracking-widest text-amber-400 mt-1.5 hover:text-amber-300 transition-colors"
             >
               {isExpanded ? 'Ver menos' : 'Ver más'}
             </button>
@@ -75,10 +104,10 @@ const FullScreenCard = ({ product, onAdd, onSectionChange, sections, activeSecti
           <button
             onClick={handleAdd}
             disabled={isOutOfStock}
-            className="w-full py-4 rounded-xl flex items-center justify-center gap-3 transition-all duration-300 active:scale-95 disabled:opacity-50"
-            style={{ 
-              background: isOutOfStock ? '#222' : (added ? '#15803d' : 'var(--accent)'), 
-              color: isOutOfStock ? '#555' : 'var(--bg)', 
+            className="w-full py-4 rounded-xl flex items-center justify-center gap-3 transition-all duration-300 active:scale-95 disabled:opacity-50 hover:brightness-110 cursor-pointer disabled:cursor-not-allowed"
+            style={{
+              background: isOutOfStock ? '#222' : (added ? '#15803d' : 'var(--accent)'),
+              color: isOutOfStock ? '#555' : 'var(--bg)',
               fontWeight: '900',
               fontSize: '11px',
               textTransform: 'uppercase',
@@ -94,30 +123,32 @@ const FullScreenCard = ({ product, onAdd, onSectionChange, sections, activeSecti
             )}
           </button>
 
-          <div className="flex gap-1.5">
-            {sections.map(s => (
-              <button
-                key={s.key}
-                onClick={() => onSectionChange(s.key)}
-                className="flex-1 py-3 rounded-lg text-[9px] font-bold uppercase tracking-widest transition-all border"
-                style={activeSection === s.key 
-                  ? { background: 'var(--accent)', color: 'var(--bg)', borderColor: 'var(--accent)' } 
-                  : { background: 'rgba(255,255,255,0.02)', color: 'rgba(255,255,255,0.3)', borderColor: 'rgba(255,255,255,0.05)' }
-                }
-              >
-                {s.label}
-              </button>
-            ))}
+          <div className="relative flex items-center gap-1" data-cat-bar>
+              <div className="flex gap-1.5 overflow-x-auto scrollbar-hide flex-1 pb-1" style={{ touchAction: 'pan-x', WebkitOverflowScrolling: 'touch' }}>
+                {sections.map(s => (
+                  <button
+                    key={s.key}
+                    onClick={() => onSectionChange(s.key)}
+                    className="flex-shrink-0 py-3 px-4 rounded-lg text-[9px] font-bold uppercase tracking-widest transition-all border hover:brightness-110 cursor-pointer"
+                    style={activeSection === s.key
+                      ? { background: 'var(--accent)', color: 'var(--bg)', borderColor: 'var(--accent)' }
+                      : { background: 'rgba(255,255,255,0.02)', color: 'rgba(255,255,255,0.3)', borderColor: 'rgba(255,255,255,0.05)' }
+                    }
+                  >
+                    {s.label}
+                  </button>
+                ))}
+              </div>
+
+            <button
+              onClick={() => scrollCat(1)}
+              className={`flex-shrink-0 w-7 h-7 flex items-center justify-center rounded-lg border border-white/10 bg-white/5 text-white/50 hover:text-white hover:bg-white/10 transition-all ${showNextCat ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+            >
+              <ChevronRight size={14} />
+            </button>
           </div>
         </div>
       </div>
-
-      <style dangerouslySetInnerHTML={{ __html: `
-        @keyframes imageEntry {
-          from { opacity: 0; transform: scale(1.05); }
-          to { opacity: 0.9; transform: scale(1); }
-        }
-      `}} />
     </div>
   );
 };

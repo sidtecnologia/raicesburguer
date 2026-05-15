@@ -76,7 +76,6 @@ const CartModal = ({ isOpen, onClose, onCheckout }) => {
                 className="w-full p-4 pl-11 rounded-xl bg-white/5 border border-white/10 text-white outline-none focus:border-amber-400/50 transition-colors resize-none text-sm"
                 placeholder="Ej: Sin cebolla, salsas aparte, portería..."
                 rows="2"
-                style={{ fontFamily: "'Poppins', sans-serif" }}
               />
               <ClipboardList size={18} className="absolute top-4 left-4 text-white/20" />
             </div>

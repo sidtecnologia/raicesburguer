@@ -8,12 +8,17 @@ const Modal = ({ isOpen, onClose, title, children }) => {
     const handleOutsideClick = (e) => {
       if (modalRef.current && !modalRef.current.contains(e.target)) onClose();
     };
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') onClose();
+    };
     if (isOpen) {
       document.addEventListener('mousedown', handleOutsideClick);
+      document.addEventListener('keydown', handleKeyDown);
       document.body.style.overflow = 'hidden';
     }
     return () => {
       document.removeEventListener('mousedown', handleOutsideClick);
+      document.removeEventListener('keydown', handleKeyDown);
       document.body.style.overflow = 'unset';
     };
   }, [isOpen, onClose]);
@@ -31,18 +36,19 @@ const Modal = ({ isOpen, onClose, title, children }) => {
         style={{
           background: 'var(--surface)',
           border: '1px solid var(--border)',
-          borderRadius: '24px 24px 0 0',
+          borderRadius: 'clamp(0px, calc((100vw - 640px) * 9999), 24px) clamp(0px, calc((100vw - 640px) * 9999), 24px) 0 0',
           boxShadow: '0 -20px 60px rgba(0,0,0,0.5)',
         }}
       >
         <div
           className="flex justify-between items-center px-5 py-4 sticky top-0 z-10"
-          style={{ background: 'var(--surface)', borderBottom: '1px solid var(--border)' }}
+          style={{ background: 'var(--surface)', borderBottom: '1px solid var(--border)', borderRadius: 'inherit' }}
         >
           <h3 className="display text-2xl" style={{ color: 'var(--text)' }}>{title}</h3>
           <button
             onClick={onClose}
-            className="p-2 rounded-full transition-all"
+            aria-label="Cerrar"
+            className="p-2 rounded-full transition-all hover:bg-white/10"
             style={{ background: 'var(--surface2)', color: 'var(--text-muted)' }}
           >
             <X size={20} />

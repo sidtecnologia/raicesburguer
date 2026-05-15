@@ -10,7 +10,7 @@ import { ShoppingBag, Loader2 } from 'lucide-react';
 import { BUSINESS_CONFIG } from './config/businessConfig';
 
 const StoreContent = () => {
-  const { products, loading, addToCart, cart } = useShop();
+  const { products, loading, error, addToCart, cart } = useShop();
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
   const [successOrder, setSuccessOrder] = useState(null);
@@ -24,14 +24,30 @@ const StoreContent = () => {
     </div>
   );
 
+  if (error) return (
+    <div className="h-dvh flex flex-col items-center justify-center bg-[#0a0806] gap-4 px-8 text-center">
+      <div className="w-16 h-16 rounded-full flex items-center justify-center bg-red-500/10 border border-red-500/20">
+        <span className="text-red-400 text-2xl">!</span>
+      </div>
+      <h2 className="display text-3xl text-white">Sin conexión</h2>
+      <p className="text-sm text-white/40 max-w-xs">No se pudo cargar el menú. Revisa tu conexión a internet e intenta de nuevo.</p>
+      <button
+        onClick={() => window.location.reload()}
+        className="mt-2 px-6 py-3 rounded-xl bg-amber-400 text-black font-black text-xs uppercase tracking-widest hover:brightness-110 active:scale-95 transition-all cursor-pointer"
+      >
+        Reintentar
+      </button>
+    </div>
+  );
+
   return (
-    <div className="fixed inset-0 overflow-hidden bg-[#0a0806]" style={{ fontFamily: "'Poppins', sans-serif" }}>
+    <div className="fixed inset-0 overflow-hidden bg-[#0a0806]">
       <header
-        className="absolute top-0 left-0 right-0 z-40 flex items-center justify-between px-6 pt-8 pb-6"
+        className="absolute top-0 left-0 right-0 z-40 flex items-center justify-between px-6 pt-6 pb-6 md:px-10 md:pt-8"
         style={{ background: 'linear-gradient(to bottom, rgba(10,8,6,1) 0%, rgba(10,8,6,0) 100%)' }}
       >
         <div className="flex flex-col">
-          <h1 className="display text-4xl leading-none text-white tracking-tighter">
+          <h1 className="display text-4xl md:text-5xl leading-none text-white tracking-tighter">
             {BUSINESS_CONFIG.name.split(' ')[0]}
             <span style={{ color: 'var(--accent)' }}>{BUSINESS_CONFIG.name.split(' ')[1]}</span>
           </h1>
@@ -40,9 +56,10 @@ const StoreContent = () => {
 
         <button
           onClick={() => setIsCartOpen(true)}
-          className="relative flex items-center justify-center w-14 h-14 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-xl transition-all active:scale-90"
+          className="relative flex items-center justify-center w-14 h-14 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-xl transition-all hover:bg-white/10 hover:border-white/20 active:scale-90 cursor-pointer"
+          aria-label={`Ver carrito${cartCount > 0 ? `, ${cartCount} productos` : ''}`}
         >
-          <ShoppingBag size={24} className="text-white -translate-x-1" />
+          <ShoppingBag size={24} className="text-white -translate-x-0.5" />
           {cartCount > 0 && (
             <span
               className="absolute -top-1.5 -right-1.5 w-7 h-7 flex items-center justify-center rounded-full text-xs font-black shadow-2xl animate-pulse"
@@ -62,28 +79,28 @@ const StoreContent = () => {
         />
       </div>
 
-      <CartModal 
-        isOpen={isCartOpen} 
-        onClose={() => setIsCartOpen(false)} 
+      <CartModal
+        isOpen={isCartOpen}
+        onClose={() => setIsCartOpen(false)}
         onCheckout={(obs) => {
           setOrderObservation(obs);
           setIsCheckoutOpen(true);
-        }} 
+        }}
       />
-      
-      <CheckoutModal 
-        isOpen={isCheckoutOpen} 
-        onClose={() => setIsCheckoutOpen(false)} 
+
+      <CheckoutModal
+        isOpen={isCheckoutOpen}
+        onClose={() => setIsCheckoutOpen(false)}
         onSuccess={setSuccessOrder}
         observation={orderObservation}
       />
-      
-      <SuccessModal 
-        isOpen={!!successOrder} 
-        onClose={() => setSuccessOrder(null)} 
-        orderDetails={successOrder} 
+
+      <SuccessModal
+        isOpen={!!successOrder}
+        onClose={() => setSuccessOrder(null)}
+        orderDetails={successOrder}
       />
-      
+
       <InstallPrompt />
       <Toasts />
     </div>

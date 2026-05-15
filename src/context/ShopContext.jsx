@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect } from 'react';
-import { getProducts, placeOrderAPI, saveOrderToDB } from '../services/api';
+import { getProducts, placeOrderAPI, saveOrderToDB, getCachedProducts, setCachedProducts } from '../services/api';
 
 const ShopContext = createContext();
 
@@ -18,6 +18,12 @@ export const ShopProvider = ({ children }) => {
   }, []);
 
   const fetchProducts = async () => {
+    const cached = getCachedProducts();
+    if (cached) {
+      setProducts(cached);
+      setLoading(false);
+      return;
+    }
     try {
       setLoading(true);
       const data = await getProducts();
@@ -124,7 +130,15 @@ export const ShopProvider = ({ children }) => {
         console.warn(apiErr);
       }
 
-      await fetchProducts();
+      const updatedProducts = products.map(p => {
+        const ordered = orderDetails.items.find(i => i.id === p.id);
+        if (!ordered) return p;
+        return { ...p, stock: Math.max(0, (p.stock ?? 0) - ordered.qty) };
+      });
+
+      setProducts(updatedProducts);
+      setCachedProducts(updatedProducts);
+
       clearCart();
       addToast('Pedido confirmado y enviado.', 'Éxito');
       return true;
@@ -148,7 +162,9 @@ export const ShopProvider = ({ children }) => {
       confirmOrder,
       isBusinessModalOpen,
       setBusinessModalOpen,
-      toasts
+      toasts,
+      addToast,
+      removeToast
     }}>
       {children}
     </ShopContext.Provider>

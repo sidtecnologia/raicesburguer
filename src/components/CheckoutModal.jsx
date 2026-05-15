@@ -39,24 +39,27 @@ const CheckoutModal = ({ isOpen, onClose, onSuccess, observation }) => {
   return (
     <>
       <Modal isOpen={isOpen && !showPrivacy} onClose={onClose} title="Datos de Entrega">
-        <form onSubmit={handleSubmit} className="space-y-4" style={{ fontFamily: "'Poppins', sans-serif" }}>
+        <form onSubmit={handleSubmit} className="space-y-4">
           <input
-            className="w-full p-4 rounded-xl bg-white/5 border border-white/10 text-white outline-none"
+            className="w-full p-4 rounded-xl bg-white/5 border border-white/10 text-white outline-none focus:border-amber-400/50 transition-colors"
             placeholder="Nombre completo"
             required
+            value={formData.name}
             onChange={e => field('name', e.target.value)}
           />
           <input
-            className="w-full p-4 rounded-xl bg-white/5 border border-white/10 text-white outline-none"
+            className="w-full p-4 rounded-xl bg-white/5 border border-white/10 text-white outline-none focus:border-amber-400/50 transition-colors"
             placeholder="Dirección de entrega"
             required
+            value={formData.address}
             onChange={e => field('address', e.target.value)}
           />
           <input
-            className="w-full p-4 rounded-xl bg-white/5 border border-white/10 text-white outline-none"
+            className="w-full p-4 rounded-xl bg-white/5 border border-white/10 text-white outline-none focus:border-amber-400/50 transition-colors"
             placeholder="Teléfono"
             required
             type="tel"
+            value={formData.phone}
             onChange={e => field('phone', e.target.value)}
           />
           <div className="space-y-2">
