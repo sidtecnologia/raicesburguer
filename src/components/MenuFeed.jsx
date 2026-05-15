@@ -2,7 +2,7 @@ import { useState, useRef, useCallback, useMemo, useEffect } from 'react';
 import FullScreenCard from './FullScreenCard';
 import { Droplets, ChevronsLeft, ChevronsRight, ChevronLeft, ChevronRight } from 'lucide-react';
 
-const MenuFeed = ({ products, onAdd }) => {
+const MenuFeed = ({ products, onAdd, onOpenInfo }) => {
   const [activeSection, setActiveSection] = useState('');
   const [currentIndex, setCurrentIndex] = useState(0);
   const [showUpsell, setShowUpsell] = useState(false);
@@ -112,6 +112,7 @@ const MenuFeed = ({ products, onAdd }) => {
           setActiveSection(key);
           setCurrentIndex(0);
         }}
+        onOpenInfo={onOpenInfo}
       />
 
       {currentProducts.length > 1 && (

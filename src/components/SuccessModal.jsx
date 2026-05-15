@@ -1,15 +1,19 @@
 import { useState } from 'react';
 import Modal from './ui/Modal';
+import NequiModal from './NequiModal';
 import { CheckCircle, MapPin, User, MessageSquare } from 'lucide-react';
 import { formatMoney } from '../utils/format';
 import { useShop } from '../context/ShopContext';
-import { BUSINESS_CONFIG } from '../config/businessConfig';
+import { BUSINESS_CONFIG, isBusinessOpen } from '../config/businessConfig';
 
 const SuccessModal = ({ isOpen, onClose, orderDetails }) => {
   const { confirmOrder, addToast } = useShop();
   const [loading, setLoading] = useState(false);
+  const [showNequi, setShowNequi] = useState(false);
 
   if (!orderDetails) return null;
+
+  const isNequi = orderDetails.payment === 'Transferencia';
 
   const isMobile = () => /Android|iPhone|iPad|iPod|Windows Phone|IEMobile|Opera Mini/i.test(navigator.userAgent || '');
 
@@ -20,20 +24,19 @@ const SuccessModal = ({ isOpen, onClose, orderDetails }) => {
     lines.push(`*Cliente:* ${orderDetails.name}`);
     lines.push(`*Dirección:* ${orderDetails.address}`);
     lines.push(`*Método de Pago:* ${orderDetails.payment}`);
-    
-    // La observación ya se incluye en el mensaje de WhatsApp según el ShopContext
     if (orderDetails.observation) {
       lines.push(`*Notas:* ${orderDetails.observation}`);
     }
-
     lines.push(``);
     lines.push(`*Pedido:*`);
     orderDetails.items.forEach((item, idx) => {
       lines.push(`${idx + 1}. ${item.qty}x ${item.name} - $${formatMoney(item.price * item.qty)}`);
     });
-    
     lines.push(``);
     lines.push(`*Total: $${formatMoney(orderDetails.total)}*`);
+    if (isNequi) {
+      lines.push(`*(Pago por Nequi — adjunto comprobante)*`);
+    }
     return lines.join('\n');
   };
 
@@ -44,6 +47,10 @@ const SuccessModal = ({ isOpen, onClose, orderDetails }) => {
   };
 
   const handleWhatsApp = async () => {
+    if (!isBusinessOpen()) {
+      addToast(`Abriremos Pronto. Horario: ${BUSINESS_CONFIG.schedule.label}`, 'Negocio cerrado');
+      return;
+    }
     window.open(buildLink(), '_blank', 'noopener,noreferrer');
     setLoading(true);
     try {
@@ -58,78 +65,105 @@ const SuccessModal = ({ isOpen, onClose, orderDetails }) => {
     }
   };
 
+  const handlePrimaryAction = () => {
+    if (isNequi) {
+      setShowNequi(true);
+    } else {
+      handleWhatsApp();
+    }
+  };
+
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="¡Pedido Listo!">
-      <div className="text-center space-y-5">
-        <div className="flex justify-center">
-          <div className="w-20 h-20 rounded-full flex items-center justify-center" style={{ background: 'rgba(34,197,94,0.12)' }}>
-            <CheckCircle className="text-green-400 w-12 h-12" />
-          </div>
-        </div>
-
-        <div>
-          <h3 className="display text-3xl mb-1" style={{ color: 'var(--text)' }}>¡Casi listo!</h3>
-          <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
-            Confirma tu pedido por WhatsApp para que empecemos a prepararlo.
-          </p>
-        </div>
-
-        {/* --- NUEVA SECCIÓN: Resumen de información del pedido --- */}
-        <div className="p-4 rounded-2xl text-left space-y-3 bg-white/5 border border-white/10">
-          <div className="space-y-1">
-            <p className="text-[10px] font-black uppercase tracking-widest text-white/40 flex items-center gap-1">
-              <User size={10} /> Cliente
-            </p>
-            <p className="text-xs font-medium text-white/90">{orderDetails.name}</p>
-          </div>
-
-          <div className="space-y-1">
-            <p className="text-[10px] font-black uppercase tracking-widest text-white/40 flex items-center gap-1">
-              <MapPin size={10} /> Entrega en
-            </p>
-            <p className="text-xs font-medium text-white/90">{orderDetails.address}</p>
-          </div>
-
-          {/* Bloque de Observación añadido */}
-          {orderDetails.observation && (
-            <div className="pt-2 mt-2 border-t border-white/5">
-              <p className="text-[10px] font-black uppercase tracking-widest text-amber-400 flex items-center gap-1">
-                <MessageSquare size={10} /> Notas adicionales
-              </p>
-              <p className="text-xs italic text-white/70 leading-relaxed">
-                "{orderDetails.observation}"
-              </p>
+    <>
+      <Modal isOpen={isOpen && !showNequi} onClose={onClose} title="¡Pedido Listo!">
+        <div className="text-center space-y-5">
+          <div className="flex justify-center">
+            <div className="w-20 h-20 rounded-full flex items-center justify-center" style={{ background: 'rgba(34,197,94,0.12)' }}>
+              <CheckCircle className="text-green-400 w-12 h-12" />
             </div>
+          </div>
+
+          <div>
+            <h3 className="display text-3xl mb-1" style={{ color: 'var(--text)' }}>¡Casi listo!</h3>
+            <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
+              {isNequi
+                ? 'Transfiere por Nequi y luego confirma tu pedido por WhatsApp.'
+                : 'Confirma tu pedido por WhatsApp para que empecemos a prepararlo.'}
+            </p>
+          </div>
+
+          <div className="p-4 rounded-2xl text-left space-y-3 bg-white/5 border border-white/10">
+            <div className="space-y-1">
+              <p className="text-[10px] font-black uppercase tracking-widest text-white/40 flex items-center gap-1">
+                <User size={10} /> Cliente
+              </p>
+              <p className="text-xs font-medium text-white/90">{orderDetails.name}</p>
+            </div>
+            <div className="space-y-1">
+              <p className="text-[10px] font-black uppercase tracking-widest text-white/40 flex items-center gap-1">
+                <MapPin size={10} /> Entrega en
+              </p>
+              <p className="text-xs font-medium text-white/90">{orderDetails.address}</p>
+            </div>
+            {orderDetails.observation && (
+              <div className="pt-2 mt-2 border-t border-white/5">
+                <p className="text-[10px] font-black uppercase tracking-widest text-amber-400 flex items-center gap-1">
+                  <MessageSquare size={10} /> Notas adicionales
+                </p>
+                <p className="text-xs italic text-white/70 leading-relaxed">
+                  "{orderDetails.observation}"
+                </p>
+              </div>
+            )}
+          </div>
+
+          <div className="p-4 rounded-2xl text-left space-y-2" style={{ background: 'var(--surface2)', border: '1px solid var(--border)' }}>
+            <div className="flex justify-between items-center opacity-60">
+              <span className="text-xs font-bold uppercase tracking-widest">Pago</span>
+              <span className="text-xs font-bold">{orderDetails.payment}</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-sm font-medium" style={{ color: 'var(--text-muted)' }}>Total a pagar</span>
+              <span className="display text-3xl" style={{ color: 'var(--accent)' }}>${formatMoney(orderDetails.total)}</span>
+            </div>
+          </div>
+
+          {isNequi ? (
+            <button
+              onClick={handlePrimaryAction}
+              className="w-full py-4 rounded-2xl font-black uppercase tracking-widest text-sm active:scale-95 transition-all hover:brightness-110"
+              style={{ background: '#7B2D8B', color: '#fff' }}
+            >
+              Ver instrucciones de pago Nequi
+            </button>
+          ) : (
+            <button
+              onClick={handleWhatsApp}
+              disabled={loading}
+              className="w-full py-4 rounded-2xl font-bold text-white flex items-center justify-center gap-2 transition-all active:scale-95 disabled:opacity-50 shadow-xl shadow-green-500/10"
+              style={{ background: '#25D366', fontFamily: "'Poppins', sans-serif" }}
+            >
+              <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" alt="WA" className="w-5 h-5" />
+              {loading ? 'Procesando...' : 'Enviar a WhatsApp'}
+            </button>
           )}
+
+          <button onClick={onClose} className="text-xs uppercase tracking-widest font-bold opacity-40 transition-opacity hover:opacity-100">
+            Cerrar
+          </button>
         </div>
-        {/* ------------------------------------------------------- */}
+      </Modal>
 
-        <div className="p-4 rounded-2xl text-left space-y-2" style={{ background: 'var(--surface2)', border: '1px solid var(--border)' }}>
-          <div className="flex justify-between items-center opacity-60">
-            <span className="text-xs font-bold uppercase tracking-widest">Pago</span>
-            <span className="text-xs font-bold">{orderDetails.payment}</span>
-          </div>
-          <div className="flex justify-between items-center">
-            <span className="text-sm font-medium" style={{ color: 'var(--text-muted)' }}>Total a pagar</span>
-            <span className="display text-3xl" style={{ color: 'var(--accent)' }}>${formatMoney(orderDetails.total)}</span>
-          </div>
-        </div>
-
-        <button
-          onClick={handleWhatsApp}
-          disabled={loading}
-          className="w-full py-4 rounded-2xl font-bold text-white flex items-center justify-center gap-2 transition-all active:scale-95 disabled:opacity-50 shadow-xl shadow-green-500/10"
-          style={{ background: '#25D366', fontFamily: "'Poppins', sans-serif" }}
-        >
-          <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" alt="WA" className="w-5 h-5" />
-          {loading ? 'Procesando...' : 'Enviar a WhatsApp'}
-        </button>
-
-        <button onClick={onClose} className="text-xs uppercase tracking-widest font-bold opacity-40 transition-opacity hover:opacity-100">
-          Cerrar
-        </button>
-      </div>
-    </Modal>
+      <NequiModal
+        isOpen={showNequi}
+        onClose={() => setShowNequi(false)}
+        total={orderDetails.total}
+        onContinue={() => {
+          setShowNequi(false);
+          handleWhatsApp();
+        }}
+      />
+    </>
   );
 };
 

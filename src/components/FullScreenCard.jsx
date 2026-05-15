@@ -1,11 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
-import { ShoppingBag, Check, XCircle, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ShoppingBag, Check, XCircle, ChevronRight } from 'lucide-react';
 import { formatMoney } from '../utils/format';
 
-const FullScreenCard = ({ product, onAdd, onSectionChange, sections, activeSection, index, total }) => {
+const FullScreenCard = ({ product, onAdd, onSectionChange, sections, activeSection, index, total, onOpenInfo }) => {
   const [added, setAdded] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
-  const [showPrevCat, setShowPrevCat] = useState(false);
   const [showNextCat, setShowNextCat] = useState(false);
   const catScrollRef = useRef(null);
 
@@ -21,7 +20,6 @@ const FullScreenCard = ({ product, onAdd, onSectionChange, sections, activeSecti
   const checkCatScroll = () => {
     const el = catScrollRef.current;
     if (!el) return;
-    setShowPrevCat(el.scrollLeft > 4);
     setShowNextCat(el.scrollLeft + el.clientWidth < el.scrollWidth - 4);
   };
 
@@ -36,10 +34,6 @@ const FullScreenCard = ({ product, onAdd, onSectionChange, sections, activeSecti
       window.removeEventListener('resize', checkCatScroll);
     };
   }, [sections]);
-
-  const scrollCat = (dir) => {
-    catScrollRef.current?.scrollBy({ left: dir * 120, behavior: 'smooth' });
-  };
 
   const handleAdd = () => {
     if (added || isOutOfStock) return;
@@ -124,29 +118,40 @@ const FullScreenCard = ({ product, onAdd, onSectionChange, sections, activeSecti
           </button>
 
           <div className="relative flex items-center gap-1" data-cat-bar>
-              <div className="flex gap-1.5 overflow-x-auto scrollbar-hide flex-1 pb-1" style={{ touchAction: 'pan-x', WebkitOverflowScrolling: 'touch' }}>
-                {sections.map(s => (
-                  <button
-                    key={s.key}
-                    onClick={() => onSectionChange(s.key)}
-                    className="flex-shrink-0 py-3 px-4 rounded-lg text-[9px] font-bold uppercase tracking-widest transition-all border hover:brightness-110 cursor-pointer"
-                    style={activeSection === s.key
-                      ? { background: 'var(--accent)', color: 'var(--bg)', borderColor: 'var(--accent)' }
-                      : { background: 'rgba(255,255,255,0.02)', color: 'rgba(255,255,255,0.3)', borderColor: 'rgba(255,255,255,0.05)' }
-                    }
-                  >
-                    {s.label}
-                  </button>
-                ))}
-              </div>
+            <div
+              ref={catScrollRef}
+              className="flex gap-1.5 overflow-x-auto scrollbar-hide flex-1 pb-1"
+              style={{ touchAction: 'pan-x', WebkitOverflowScrolling: 'touch' }}
+            >
+              {sections.map(s => (
+                <button
+                  key={s.key}
+                  onClick={() => onSectionChange(s.key)}
+                  className="flex-shrink-0 py-3 px-4 rounded-lg text-[9px] font-bold uppercase tracking-widest transition-all border hover:brightness-110 cursor-pointer"
+                  style={activeSection === s.key
+                    ? { background: 'var(--accent)', color: 'var(--bg)', borderColor: 'var(--accent)' }
+                    : { background: 'rgba(255,255,255,0.02)', color: 'rgba(255,255,255,0.3)', borderColor: 'rgba(255,255,255,0.05)' }
+                  }
+                >
+                  {s.label}
+                </button>
+              ))}
+            </div>
 
             <button
-              onClick={() => scrollCat(1)}
               className={`flex-shrink-0 w-7 h-7 flex items-center justify-center rounded-lg border border-white/10 bg-white/5 text-white/50 hover:text-white hover:bg-white/10 transition-all ${showNextCat ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
             >
               <ChevronRight size={14} />
             </button>
           </div>
+
+          <button
+            onClick={onOpenInfo}
+            className="w-full py-2 rounded-xl text-[9px] font-black uppercase tracking-[0.2em] transition-all hover:bg-white/5 active:scale-95"
+            style={{ color: 'rgba(255,255,255,0.18)', border: '1px solid rgba(255,255,255,0.06)' }}
+          >
+            Información del negocio
+          </button>
         </div>
       </div>
     </div>
