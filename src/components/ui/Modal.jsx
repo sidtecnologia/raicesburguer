@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { X } from 'lucide-react';
 
-const Modal = ({ isOpen, onClose, title, children }) => {
+const Modal = ({ isOpen, onClose, title, children, footer }) => {
   const modalRef = useRef();
 
   useEffect(() => {
@@ -32,7 +32,7 @@ const Modal = ({ isOpen, onClose, title, children }) => {
     >
       <div
         ref={modalRef}
-        className="w-full sm:max-w-lg max-h-[92dvh] overflow-y-auto flex flex-col animate-pop-in"
+        className="w-full sm:max-w-lg max-h-[92dvh] flex flex-col animate-pop-in"
         style={{
           background: 'var(--surface)',
           border: '1px solid var(--border)',
@@ -41,8 +41,8 @@ const Modal = ({ isOpen, onClose, title, children }) => {
         }}
       >
         <div
-          className="flex justify-between items-center px-5 py-4 sticky top-0 z-10"
-          style={{ background: 'var(--surface)', borderBottom: '1px solid var(--border)', borderRadius: 'inherit' }}
+          className="flex-shrink-0 flex justify-between items-center px-5 py-4"
+          style={{ borderBottom: '1px solid var(--border)' }}
         >
           <h3 className="display text-2xl" style={{ color: 'var(--text)' }}>{title}</h3>
           <button
@@ -54,7 +54,19 @@ const Modal = ({ isOpen, onClose, title, children }) => {
             <X size={20} />
           </button>
         </div>
-        <div className="p-5">{children}</div>
+
+        <div className="flex-1 overflow-y-auto p-5 min-h-0">
+          {children}
+        </div>
+
+        {footer && (
+          <div
+            className="flex-shrink-0 px-5 py-4"
+            style={{ borderTop: '1px solid var(--border)' }}
+          >
+            {footer}
+          </div>
+        )}
       </div>
     </div>
   );
