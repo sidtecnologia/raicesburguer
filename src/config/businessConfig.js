@@ -9,6 +9,11 @@ export const BUSINESS_CONFIG = {
   address: "Dirección secreta, Cúcuta",
   addressLabel: "Cocina Oculta, Cúcuta",
   mapsUrl: "https://maps.google.com/",
+  social: {
+    instagram: "https://instagram.com/raicesburger",
+    facebook: "https://facebook.com/raicesburger",
+    tiktok: "https://tiktok.com/@raicesburger"
+  },
   schedule: {
     label: "Lun - Dom: 4:00 pm - 11:00 pm",
     openHour: 16,
