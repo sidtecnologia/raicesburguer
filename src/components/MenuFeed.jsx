@@ -2,7 +2,7 @@ import { useState, useRef, useCallback, useMemo, useEffect } from 'react';
 import FullScreenCard from './FullScreenCard';
 import { Droplets, ChevronsLeft, ChevronsRight, ChevronLeft, ChevronRight } from 'lucide-react';
 
-const MenuFeed = ({ products, onAdd, onOpenInfo }) => {
+const MenuFeed = ({ products, onAdd, onOpenInfo, targetProductId }) => {
   const [activeSection, setActiveSection] = useState('');
   const [currentIndex, setCurrentIndex] = useState(0);
   const [showUpsell, setShowUpsell] = useState(false);
@@ -30,10 +30,20 @@ const MenuFeed = ({ products, onAdd, onOpenInfo }) => {
   }, [groupedProducts]);
 
   useEffect(() => {
-    if (sections.length > 0 && !activeSection) {
-      setActiveSection(sections[0].key);
+    if (sections.length === 0) return;
+    if (activeSection) return;
+    if (targetProductId) {
+      for (const section of sections) {
+        const idx = groupedProducts[section.key]?.findIndex(p => p.id === targetProductId);
+        if (idx !== undefined && idx >= 0) {
+          setActiveSection(section.key);
+          setCurrentIndex(idx);
+          return;
+        }
+      }
     }
-  }, [sections, activeSection]);
+    setActiveSection(sections[0].key);
+  }, [sections, activeSection, targetProductId, groupedProducts]);
 
   const currentProducts = activeSection && groupedProducts[activeSection]
     ? groupedProducts[activeSection]

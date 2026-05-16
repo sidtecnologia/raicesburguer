@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { ShopProvider, useShop } from './context/ShopContext';
 import MenuFeed from './components/MenuFeed';
 import CartModal from './components/CartModal';
@@ -17,6 +17,11 @@ const StoreContent = () => {
   const [isInfoOpen, setIsInfoOpen] = useState(false);
   const [successOrder, setSuccessOrder] = useState(null);
   const [orderObservation, setOrderObservation] = useState('');
+
+  const targetProductId = useMemo(() => {
+    const p = new URLSearchParams(window.location.search).get('p');
+    return p ? Number(p) : null;
+  }, []);
 
   const cartCount = cart.reduce((acc, item) => acc + item.qty, 0);
   const open = isBusinessOpen();
@@ -92,6 +97,7 @@ const StoreContent = () => {
           onAdd={(p) => addToCart(p, 1, '')}
           onOpenCart={() => setIsCartOpen(true)}
           onOpenInfo={() => setIsInfoOpen(true)}
+          targetProductId={targetProductId}
         />
       </div>
 
