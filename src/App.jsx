@@ -20,7 +20,7 @@ const StoreContent = () => {
 
   const targetProductId = useMemo(() => {
     const p = new URLSearchParams(window.location.search).get('p');
-    return p ? Number(p) : null;
+    return p || null;
   }, []);
 
   const cartCount = cart.reduce((acc, item) => acc + item.qty, 0);
